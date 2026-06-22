@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Samples — MOpsWork</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --color-bg: #f8f9fc;
+      --color-surface: #ffffff;
+      --color-surface-hover: #f0f2f8;
+      --color-border: #e2e5ef;
+      --color-text: #1a1a2e;
+      --color-text-muted: #6b7280;
+      --color-accent: #7c3aed;
+      --color-accent-glow: rgba(124, 58, 237, 0.25);
+      --color-accent-2: #06b6d4;
+      --color-accent-3: #f43f5e;
+      --color-success: #10b981;
+      --radius: 12px;
+      --radius-lg: 20px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --max-width: 900px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--color-accent); text-decoration: none; }
+    .bg-grid {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(124, 58, 237, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 58, 237, 0.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0; border-bottom: 1px solid var(--color-border);
+    }
+    .logo {
+      font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--color-text-muted); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--color-text); }
+
+    .page-header { padding: 48px 0 32px; }
+    .page-header h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+    .page-header h1 .gradient-text {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .page-header p { color: var(--color-text-muted); font-size: 1.05rem; max-width: 640px; }
+
+    /* Tab navigation */
+    .tabs {
+      display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap;
+      border-bottom: 1px solid var(--color-border); padding-bottom: 0;
+    }
+    .tab-btn {
+      padding: 10px 20px; border: none; background: none;
+      font-family: var(--font); font-size: 0.9rem; font-weight: 600;
+      color: var(--color-text-muted); cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn:hover { color: var(--color-text); }
+    .tab-btn.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .template-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    .template-card h2 {
+      font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;
+    }
+    .template-card .badge {
+      display: inline-block; font-size: 0.75rem; font-weight: 600; color: var(--color-accent);
+      background: rgba(124, 58, 237, 0.08); padding: 3px 10px; border-radius: 100px;
+      margin-bottom: 16px;
+    }
+    .template-card p.tip { color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 16px; font-style: italic; }
+
+    .template-body {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      font-size: 0.9rem; line-height: 1.8; white-space: pre-wrap;
+      color: var(--color-text);
+      font-family: var(--font);
+    }
+    .template-body .placeholder {
+      color: var(--color-accent); font-weight: 600; background: rgba(124, 58, 237, 0.06);
+      padding: 1px 6px; border-radius: 4px;
+    }
+    .template-card .copy-row {
+      display: flex; align-items: center; gap: 12px; margin-top: 16px; justify-content: flex-end;
+    }
+    .copy-btn {
+      font-family: var(--font); font-size: 0.8rem; font-weight: 600;
+      padding: 8px 18px; border-radius: 100px; border: 1px solid var(--color-border);
+      background: var(--color-surface); color: var(--color-text-muted); cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+    .copy-btn.copied { border-color: var(--color-success); color: var(--color-success); }
+
+    footer { border-top: 1px solid var(--color-border); padding: 32px 0; margin-top: 48px; text-align: center; }
+    footer p { color: var(--color-text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <div class="container">
+    <nav>
+      <a href="/" class="logo">MOpsWork</a>
+      <ul class="nav-links">
+        <li><a href="/jobs.html">Job Scanner</a></li>
+        <li><a href="/applications.html">Applications</a></li>
+        <li><a href="/skills-in-demand.html">Skills in Demand</a></li>
+        <li><a href="/samples.html">Samples</a></li>
+        <li><a href="/aboutme.html">About Me</a></li>
+      </ul>
+    </nav>
+
+    <div class="page-header">
+      <h1>Application <span class="gradient-text">Samples</span></h1>
+      <p>Templates for every stage of your application journey. Fill in your details and copy-paste them wherever you need them.</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="cover-letter">Cover Letters</button>
+      <button class="tab-btn" data-tab="linkedin">LinkedIn Posts</button>
+      <button class="tab-btn" data-tab="follow-up">Follow-Up Emails</button>
+      <button class="tab-btn" data-tab="intro">Intro Posts</button>
+    </div>
+
+    <!-- COVER LETTERS -->
+    <div class="tab-panel active" id="tab-cover-letter">
+      <!-- Template 1: Standard Application -->
+      <div class="template-card">
+        <h2>Standard Application Cover Letter</h2>
+        <div class="badge">Cover Letter</div>
+        <p class="tip">Use for direct applications through job boards or company career pages.</p>
+        <div class="template-body">Subject: Application for <span class="placeholder">{JOB_TITLE}</span> at <span class="placeholder">{COMPANY}</span>
+
+Dear <span class="placeholder">{HIRING_MANAGER}</span>,
+
+I am writing to express my interest in the <span class="placeholder">{JOB_TITLE}</span> position at <span class="placeholder">{COMPANY}</span>. With <span class="placeholder">{YEARS}</span> years of experience in Marketing Operations, I have developed a strong track record of building scalable processes, optimising marketing technology stacks, and driving measurable revenue outcomes.
+
+In my most recent role as <span class="placeholder">{CURRENT_ROLE}</span> at <span class="placeholder">{CURRENT_COMPANY}</span>, I <span class="placeholder">{KEY_ACHIEVEMENT_1}</span>. I also led <span class="placeholder">{KEY_ACHIEVEMENT_2}</span>, which resulted in <span class="placeholder">{QUANTIFIABLE_RESULT}</span>.
+
+My technical proficiency includes <span class="placeholder">{SKILL_1}</span>, <span class="placeholder">{SKILL_2}</span>, and <span class="placeholder">{SKILL_3}</span>, which align closely with the requirements outlined in the job description. I am particularly drawn to <span class="placeholder">{COMPANY}</span> because <span class="placeholder">{WHY_COMPANY}</span>.
+
+I would welcome the opportunity to discuss how my background in marketing operations can contribute to the team's success. Thank you for considering my application.
+
+Kind regards,
+<span class="placeholder">{YOUR_NAME}</span>
+<span class="placeholder">{YOUR_PHONE}</span>
+<span class="placeholder">{YOUR_LINKEDIN_URL}</span></div>
+        <div class="copy-row"><button class="copy-btn" onclick="copyTemplate(this)">Copy to Clipboard</button></div>
+      </div>
+
+      <!-- Template 2: Career Change -->
+      <div class="template-card">
+        <h2>Career Change / Transition Cover Letter</h2>
+        <div class="badge">Cover Letter</div>
+        <p class="tip">Best when pivoting from an adjacent field into Marketing or Revenue Operations.</p>
+        <div class="template-body">Subject: Application for <span class="placeholder">{JOB_TITLE}</span> &mdash; Marketing Operations Specialist
+
+Dear <span class="placeholder">{HIRING_MANAGER}</span>,
+
+I am applying for the <span class="placeholder">{JOB_TITLE}</span> position at <span class="placeholder">{COMPANY}</span>. While my background is rooted in <span class="placeholder">{PREVIOUS_FIELD}</span>, my experience with data analysis, process optimisation, and cross-functional collaboration has prepared me well for a career in Marketing Operations.
+
+Throughout my <span class="placeholder">{YEARS}</span> years at <span class="placeholder">{CURRENT_COMPANY}</span>, I have consistently operated at the intersection of data and process: <span class="placeholder">{RELEVANT_EXPERIENCE_1}</span>. I have also built proficiency in <span class="placeholder">{SKILL_1}</span> and <span class="placeholder">{SKILL_2}</span>, tools that are central to modern marketing ops stacks.
+
+What excites me about <span class="placeholder">{COMPANY}</span> is <span class="placeholder">{WHY_COMPANY}</span>. I am eager to bring an analytical mindset and a bias for action to your operations team and grow into a subject-matter expert under your leadership.
+
+Thank you for considering my application. I look forward to the possibility of discussing how my transferable skills can add value.
+
+Warm regards,
+<span class="placeholder">{YOUR_NAME}</span>
+<span class="placeholder">{YOUR_PHONE}</span>
+<span class="placeholder">{YOUR_LINKEDIN_URL}</span></div>
+        <div class="copy-row"><button class="copy-btn" onclick="copyTemplate(this)">Copy to Clipboard</button></div>
+      </div>
+    </div>
+
+    <!-- LINKEDIN POSTS -->
+    <div class="tab-panel" id="tab-linkedin">
+      <div class="template-card">
+        <h2>Celebrate Your New Role</h2>
+        <div class="badge">LinkedIn Post</div>
+        <p class="tip">Post when you land a new role to inform your network and thank your supporters.</p>
+        <div class="template-body">I&rsquo;m excited to share that I&rsquo;ve joined <span class="placeholder">{COMPANY}</span> as a <span class="placeholder">{JOB_TITLE}</span>!
+
+After <span class="placeholder">{YEARS}</span> years in <span class="placeholder">{PREVIOUS_FIELD}</span>, this role is the perfect next step&mdash;combining my passion for <span class="placeholder">{AREA_OF_INTEREST_1}</span> and <span class="placeholder">{AREA_OF_INTEREST_2}</span>.
+
+A huge thank you to <span class="placeholder">{MENTOR_OR_REFERRER}</span> for the guidance, and to the hiring team at <span class="placeholder">{COMPANY}</span> for a warm welcome. I can&rsquo;t wait to dive in and contribute to <span class="placeholder">{COMPANY_MISSION}</span>.
+
+To everyone currently job searching in Marketing Ops and RevOps&mdash;keep going. The right role is out there.
+
+#MarketingOperations #NewRole #<span class="placeholder">{COMPANY_HASHTAG}</span> #MOpsWork</div>
+        <div class="copy-row"><button class="copy-btn" onclick="copyTemplate(this)">Copy to Clipboard</button></div>
+      </div>
+
+      <div class="template-card">
+        <h2>Thought Leadership / Industry Insight</h2>
+        <div class="badge">LinkedIn Post</div>
+        <p class="tip">Share your expertise or comment on industry trends to build your personal brand.</p>
+        <div class="template-body">One thing I&rsquo;ve learned from <span class="placeholder">{YEARS}</span> years in Marketing Operations:
+
+<span class="placeholder">{INSIGHT_OR_LESSON}</span>.
+
+When I first started working with <span class="placeholder">{TOOL_OR_PROCESS}</span>, I assumed <span class="placeholder">{COMMON_ASSUMPTION}</span>. But the reality was <span class="placeholder">{WHAT_YOU_LEARNED}</span>.
+
+Here&rsquo;s what changed for me:
+&bull; <span class="placeholder">{TAKEAWAY_1}</span>
+&bull; <span class="placeholder">{TAKEAWAY_2}</span>
+&bull; <span class="placeholder">{TAKEAWAY_3}</span>
+
+If you&rsquo;re in RevOps or Marketing Ops and wrestling with <span class="placeholder">{TOPIC}</span>, I&rsquo;d love to hear how you&rsquo;re approaching it.
+
+#MarketingOperations #RevOps #MarTech #MOpsWork</div>
+        <div class="copy-row"><button class="copy-btn" onclick="copyTemplate(this)">Copy to Clipboard</button></div>
+      </div>
+    </div>
+
+    <!-- FOLLOW-UP EMAILS -->
+    <div class="tab-panel" id="tab-follow-up">
+      <div class="template-card">
+        <h2>Post-Application Follow-Up</h2>
+        <div class="badge">Follow-Up Email</div>
+        <p class="tip">Send 5-7 days after applying if you haven&rsquo;t heard back.</p>
+        <div class="template-body">Subject: Following up on <span class="placeholder">{JOB_TITLE}</span> application
+
+Hi <span class="placeholder">{HIRING_MANAGER}</span>,
+
+I wanted to follow up on my application for the <span class="placeholder">{JOB_TITLE}</span> position submitted on <span class="placeholder">{DATE_APPLIED}</span>. I remain very interested in the opportunity to bring my experience in <span class="placeholder">{SKILL_1}</span> and <span class="placeholder">{SKILL_2}</span> to <span class="placeholder">{COMPANY}</span>.
+
+I recently <span class="placeholder">{RECENT_ACHIEVEMENT_OR_UPDATE}</span>, which I believe would directly support the team&rsquo;s goals around <span class="placeholder">{COMPANY_PRIORITY}</span>.
+
+Please let me know if there&rsquo;s anything else I can provide to support my application. I&rsquo;d welcome the chance to discuss how I can contribute.
+
+Best regards,
+<span class="placeholder">{YOUR_NAME}</span></div>
+        <div class="copy-row"><button class="copy-btn" onclick="copyTemplate(this)">Copy to Clipboard</button></div>
+      </div>
+
+      <div class="template-card">
+        <h2>Post-Interview Thank You</h2>
+        <div class="badge">Follow-Up Email</div>
+        <p class="tip">Send within 24 hours of your interview.</p>
+        <div class="template-body">Subject: Thank you &mdash; <span class="placeholder">{JOB_TITLE}</span> interview
+
+Hi <span class="placeholder">{HIRING_MANAGER}</span>,
+
+Thank you for taking the time to speak with me today about the <span class="placeholder">{JOB_TITLE}</span> role. I really enjoyed learning about <span class="placeholder">{SPECIFIC_TOPIC_DISCUSSED}</span> and how the team approaches <span class="placeholder">{CHALLENGE_OR_PROJECT}</span>.
+
+Our conversation reinforced my excitement about <span class="placeholder">{COMPANY}</span>&rsquo;s work in <span class="placeholder">{AREA}</span>. In particular, what you shared about <span class="placeholder">{SPECIFIC_INSIGHT}</span> resonated with my experience in <span class="placeholder">{RELEVANT_EXPERIENCE}</span>.
+
+I look forward to hearing about next steps, and please don&rsquo;t hesitate to reach out if I can provide any additional information.
+
+Warm regards,
+<span class="placeholder">{YOUR_NAME}</span></div>
+        <div class="copy-row"><button class="copy-btn" onclick="copyTemplate(this)">Copy to Clipboard</button></div>
+      </div>
+    </div>
+
+    <!-- INTRO POSTS -->
+    <div class="tab-panel" id="tab-intro">
+      <div class="template-card">
+        <h2>Intro Message to a Hiring Manager</h2>
+        <div class="badge">Intro Message</div>
+        <p class="tip">Send via LinkedIn DM or email when reaching out before or after applying.</p>
+        <div class="template-body">Subject: Interest in <span class="placeholder">{JOB_TITLE}</span> &mdash; Marketing Ops professional
+
+Hi <span class="placeholder">{HIRING_MANAGER}</span>,
+
+I came across the <span class="placeholder">{JOB_TITLE}</span> role at <span class="placeholder">{COMPANY}</span> and wanted to introduce myself directly. My name is <span class="placeholder">{YOUR_NAME}</span>, and I&rsquo;ve spent the last <span class="placeholder">{YEARS}</span> years in Marketing Operations, specialising in <span class="placeholder">{SPECIALTY_1}</span> and <span class="placeholder">{SPECIALTY_2}</span>.
+
+In my current role at <span class="placeholder">{CURRENT_COMPANY}</span>, I&rsquo;ve <span class="placeholder">{KEY_ACHIEVEMENT}</span>. I&rsquo;ve also used <span class="placeholder">{TOOL_1}</span> and <span class="placeholder">{TOOL_2}</span> extensively, which I noticed are part of your stack.
+
+I&rsquo;d love to learn more about the team&rsquo;s priorities for the next 6&ndash;12 months and share how I might contribute. If you have 10 minutes in the coming week, I&rsquo;d be grateful for a brief chat.
+
+Thank you for considering my outreach.
+
+Best,
+<span class="placeholder">{YOUR_NAME}</span>
+<span class="placeholder">{YOUR_LINKEDIN_URL}</span></div>
+        <div class="copy-row"><button class="copy-btn" onclick="copyTemplate(this)">Copy to Clipboard</button></div>
+      </div>
+
+      <div class="template-card">
+        <h2>CV Experience Summary (Email Intro)</h2>
+        <div class="badge">Intro Message</div>
+        <p class="tip">Short version to include in an email body alongside your CV.</p>
+        <div class="template-body">Hi <span class="placeholder">{HIRING_MANAGER}</span>,
+
+Please find my CV attached for the <span class="placeholder">{JOB_TITLE}</span> position. In brief:
+
+&bull; <span class="placeholder">{YEARS}</span> years in Marketing Operations, spanning <span class="placeholder">{INDUSTRY_1}</span> and <span class="placeholder">{INDUSTRY_2}</span>.
+&bull; Deep experience with <span class="placeholder">{SKILL_1}</span>, <span class="placeholder">{SKILL_2}</span>, and <span class="placeholder">{SKILL_3}</span>.
+&bull; At <span class="placeholder">{CURRENT_COMPANY}</span>, I <span class="placeholder">{QUANTIFIABLE_RESULT}</span>.
+&bull; Passionate about <span class="placeholder">{WHY_THIS_ROLE}</span>.
+
+I&rsquo;m confident I can make an immediate impact, and I&rsquo;d welcome the chance to discuss further.
+
+Best regards,
+<span class="placeholder">{YOUR_NAME}</span>
+<span class="placeholder">{YOUR_PHONE}</span></div>
+        <div class="copy-row"><button class="copy-btn" onclick="copyTemplate(this)">Copy to Clipboard</button></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="container">
+    <footer>
+      <p>&copy; 2026 MOpsWork. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Tab switching
+    document.querySelectorAll(".tab-btn").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
+        document.querySelectorAll(".tab-panel").forEach(function(p) { p.classList.remove("active"); });
+        btn.classList.add("active");
+        document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    // Copy to clipboard
+    function copyTemplate(btn) {
+      var body = btn.closest(".template-card").querySelector(".template-body");
+      var range = document.createRange();
+      range.selectNodeContents(body);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      try {
+        document.execCommand("copy");
+        btn.textContent = "Copied!";
+        btn.classList.add("copied");
+        setTimeout(function() {
+          btn.textContent = "Copy to Clipboard";
+          btn.classList.remove("copied");
+        }, 2000);
+      } catch (e) {
+        btn.textContent = "Copy failed";
+      }
+      sel.removeAllRanges();
+    }
+  </script>
+</body>
+</html>

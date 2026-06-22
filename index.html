@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MOpsWork — Smarter Marketing Ops Job Search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== Reset & Variables ===== */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --color-bg: #f8f9fc;
+      --color-surface: #ffffff;
+      --color-surface-hover: #f0f2f8;
+      --color-border: #e2e5ef;
+      --color-text: #1a1a2e;
+      --color-text-muted: #6b7280;
+      --color-accent: #7c3aed;
+      --color-accent-glow: rgba(124, 58, 237, 0.25);
+      --color-accent-2: #06b6d4;
+      --color-accent-3: #f43f5e;
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --radius: 12px;
+      --radius-lg: 20px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --max-width: 1200px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: var(--color-accent);
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    /* ===== Animated Grid Background ===== */
+    .bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(124, 58, 237, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 58, 237, 0.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* ===== Floating Orbs ===== */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.12;
+    }
+    .orb--1 {
+      width: 500px;
+      height: 500px;
+      background: var(--color-accent);
+      top: -150px;
+      right: -100px;
+      animation: orb-drift-1 20s ease-in-out infinite alternate;
+    }
+    .orb--2 {
+      width: 400px;
+      height: 400px;
+      background: var(--color-accent-2);
+      bottom: -100px;
+      left: -100px;
+      animation: orb-drift-2 25s ease-in-out infinite alternate;
+    }
+    .orb--3 {
+      width: 300px;
+      height: 300px;
+      background: var(--color-accent-3);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: orb-drift-3 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes orb-drift-1 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-100px, 80px) scale(1.15); }
+    }
+    @keyframes orb-drift-2 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(100px, -60px) scale(1.2); }
+    }
+    @keyframes orb-drift-3 {
+      0% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; }
+      100% { transform: translate(-40%, -60%) scale(1.3); opacity: 0.35; }
+    }
+
+    /* ===== Container ===== */
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== Nav ===== */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover {
+      color: var(--color-text);
+    }
+
+    .nav-cta {
+      background: var(--color-accent);
+      color: #fff !important;
+      padding: 10px 24px;
+      border-radius: 100px;
+      font-weight: 600;
+      transition: box-shadow 0.3s, transform 0.2s !important;
+    }
+    .nav-cta:hover {
+      box-shadow: 0 0 30px var(--color-accent-glow);
+      transform: scale(1.03);
+    }
+
+    /* ===== Hero ===== */
+    .hero {
+      padding: 100px 0 80px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(124, 58, 237, 0.10);
+      border: 1px solid rgba(124, 58, 237, 0.20);
+      padding: 8px 18px;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--color-accent);
+      margin-bottom: 32px;
+      animation: fade-up 0.8s ease-out forwards;
+    }
+    .hero-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-success);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.8rem, 8vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 24px;
+      animation: fade-up 0.8s ease-out 0.1s forwards;
+      opacity: 0;
+    }
+
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2), var(--color-accent-3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--color-text-muted);
+      max-width: 640px;
+      margin: 0 auto 40px;
+      animation: fade-up 0.8s ease-out 0.2s forwards;
+      opacity: 0;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      animation: fade-up 0.8s ease-out 0.3s forwards;
+      opacity: 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 36px;
+      border-radius: 100px;
+      font-family: var(--font);
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-accent), #5a4bd4);
+      color: #fff;
+      box-shadow: 0 4px 25px var(--color-accent-glow);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 40px var(--color-accent-glow);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+    .btn-secondary:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-text-muted);
+    }
+
+    /* ===== Features Section ===== */
+    .section {
+      padding: 100px 0;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto 60px;
+    }
+    .section-header h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .section-header p {
+      color: var(--color-text-muted);
+      font-size: 1.1rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--color-accent), var(--color-accent-2));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(124, 58, 237, 0.3);
+      box-shadow: 0 12px 50px rgba(0, 0, 0, 0.08);
+    }
+    .feature-card:hover::after {
+      opacity: 1;
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      background: rgba(124, 58, 237, 0.08);
+    }
+    .feature-card h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .feature-card p {
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* ===== Waitlist Section ===== */
+    .waitlist {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 64px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .waitlist::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.03), transparent 60%);
+      pointer-events: none;
+    }
+
+    .waitlist h2 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .waitlist p {
+      color: var(--color-text-muted);
+      max-width: 480px;
+      margin: 0 auto 32px;
+      position: relative;
+    }
+
+    .waitlist-form {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .waitlist-form input {
+      padding: 16px 24px;
+      border-radius: 100px;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font);
+      font-size: 1rem;
+      width: 340px;
+      max-width: 100%;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .waitlist-form input:focus {
+      border-color: var(--color-accent);
+    }
+    .waitlist-form input::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    .form-status {
+      margin-top: 16px;
+      font-size: 0.9rem;
+      min-height: 24px;
+      transition: opacity 0.3s;
+    }
+    .form-status.success {
+      color: var(--color-success);
+    }
+    .form-status.error {
+      color: var(--color-accent-3);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      border-top: 1px solid var(--color-border);
+      padding: 32px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    footer p {
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    .footer-links a {
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover {
+      color: var(--color-text);
+    }
+
+    /* ===== Animations ===== */
+    @keyframes fade-up {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .nav-links li:not(.nav-cta-li) {
+        display: none;
+      }
+      .hero {
+        padding: 60px 0 40px;
+      }
+      .waitlist {
+        padding: 40px 24px;
+      }
+      .waitlist-form input {
+        width: 100%;
+      }
+      .section {
+        padding: 60px 0;
+      }
+
+    @media (max-width: 480px) {
+      .hero-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* ===== Scrollbar ===== */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--color-surface);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-border);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg-grid"></div>
+  <div class="orb orb--1"></div>
+  <div class="orb orb--2"></div>
+  <div class="orb orb--3"></div>
+
+  <!-- Nav -->
+  <div class="container">
+    <nav>
+      <div class="logo">MOpsWork</div>
+      <ul class="nav-links">
+        <li><a href="/jobs.html">Job Scanner</a></li>
+        <li><a href="/applications.html">Applications</a></li>
+        <li><a href="/scoring.html">Scoring</a></li>
+        <li><a href="/skills-in-demand.html">Skills</a></li>
+        <li><a href="/samples.html">Samples</a></li>
+        <li><a href="/aboutme.html" style="font-weight: 700; color: var(--color-text);">About Me</a></li>
+        <li><a href="/#features">Features</a></li>
+        <li><a href="/#waitlist">Waitlist</a></li>
+        <li class="nav-cta-li"><a href="/#waitlist" class="nav-cta">Get Early Access</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        Coming Soon
+      </div>
+
+      <h1>
+        Your job search,<br />
+        <span class="gradient-text">supercharged by MOpsWork.</span>
+      </h1>
+
+      <p>
+        MOpsWork intelligently scans thousands of Marketing Operations, RevOps, and MarTech listings,
+        matches your skills, and lands you the interview — on autopilot.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#waitlist" class="btn btn-primary">
+          Join the Waitlist
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+        <a href="#features" class="btn btn-secondary">See Features</a>
+      </div>
+
+      <!-- Live Jobs Widget → now on /jobs.html -->
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Everything you need to land the perfect MOps role</h2>
+        <p>From smart matching to automated applications — your Marketing Ops job search, streamlined.</p>
+      </div>
+
+      <div class="features-grid">
+        <a href="/jobs.html" class="feature-card" style="text-decoration: none; color: inherit; display: block;">
+          <div class="feature-icon">&#x1F50D;</div>
+          <h3>Smart Job Scanning</h3>
+          <p>Scans thousands of job boards daily, filtering roles that match your unique skill profile and career goals.</p>
+        </a>
+
+        <a href="/scoring.html" class="feature-card" style="text-decoration: none; color: inherit; display: block;">
+          <div class="feature-icon">&#x1F4CA;</div>
+          <h3>Match Score Analysis</h3>
+          <p>See exactly how your experience lines up with each role. Get a clear match percentage before you apply.</p>
+        </a>
+
+        <a href="/applications.html" class="feature-card" style="text-decoration: none; color: inherit; display: block;">
+          <div class="feature-icon">&#x1F4E1;</div>
+          <h3>Application Tracking</h3>
+          <p>One dashboard to track every application, status update, and follow-up. Never lose a thread.</p>
+        </a>
+
+        <a href="/skills-in-demand.html" class="feature-card" style="text-decoration: none; color: inherit; display: block;">
+          <div class="feature-icon">&#x1F4C8;</div>
+          <h3>Skills in Demand</h3>
+          <p>See which skills employers are looking for right now, ranked by frequency and with full descriptions.</p>
+        </a>
+
+        <a href="/samples.html" class="feature-card" style="text-decoration: none; color: inherit; display: block;">
+          <div class="feature-icon">&#x1F4DD;</div>
+          <h3>Application Samples</h3>
+          <p>Ready-to-use templates for cover letters, LinkedIn posts, follow-up emails, and hiring manager intros.</p>
+        </a>
+
+        <a href="/aboutme.html" class="feature-card" style="text-decoration: none; color: inherit; display: block;">
+          <div class="feature-icon">&#x1F464;</div>
+          <h3>About Me</h3>
+          <p>My professional summary, technical and soft skills, and a portfolio of key projects — all in one place.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Waitlist -->
+  <section class="section" id="waitlist">
+    <div class="container">
+      <div class="waitlist">
+        <h2>Get early access</h2>
+        <p>Join the waitlist and be the first to try MOpsWork when it launches.</p>
+
+        <form class="waitlist-form" id="waitlistForm">
+          <input
+            type="email"
+            id="emailInput"
+            placeholder="Enter your email"
+            required
+          />
+          <button type="submit" class="btn btn-primary">
+            Join Waitlist
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </form>
+        <div class="form-status" id="formStatus"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div class="container">
+    <footer>
+      <p>&copy; 2026 MOpsWork. All rights reserved.</p>
+      <ul class="footer-links">
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Terms</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </footer>
+  </div>
+
+  <script>
+    // ===== Waitlist Form =====
+    const form = document.getElementById('waitlistForm');
+    const emailInput = document.getElementById('emailInput');
+    const formStatus = document.getElementById('formStatus');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        formStatus.textContent = 'Please enter a valid email address.';
+        formStatus.className = 'form-status error';
+        return;
+      }
+
+      formStatus.textContent = 'You\'re on the list! We\'ll be in touch soon.';
+      formStatus.className = 'form-status success';
+      emailInput.value = '';
+
+      // Reset after a few seconds
+      setTimeout(() => {
+        formStatus.textContent = '';
+        formStatus.className = 'form-status';
+      }, 5000);
+    });
+
+    // ===== Intersection Observer for scroll-in animations =====
+    const cards = document.querySelectorAll('.feature-card');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    cards.forEach((card) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(30px)';
+      card.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+      observer.observe(card);
+    });
+
+    // ===== Smooth scroll for anchor links =====
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+      anchor.addEventListener('click', (e) => {
+        const target = document.querySelector(anchor.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

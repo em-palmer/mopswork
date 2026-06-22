@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Me — MOpsWork</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --color-bg: #f8f9fc;
+      --color-surface: #ffffff;
+      --color-surface-hover: #f0f2f8;
+      --color-border: #e2e5ef;
+      --color-text: #1a1a2e;
+      --color-text-muted: #6b7280;
+      --color-accent: #7c3aed;
+      --color-accent-glow: rgba(124, 58, 237, 0.25);
+      --color-accent-2: #06b6d4;
+      --color-accent-3: #f43f5e;
+      --color-success: #10b981;
+      --radius: 12px;
+      --radius-lg: 20px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --max-width: 960px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--color-accent); text-decoration: none; }
+    .bg-grid {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(124, 58, 237, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 58, 237, 0.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0; border-bottom: 1px solid var(--color-border);
+    }
+    .logo {
+      font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--color-text-muted); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--color-text); }
+
+    .page-header { padding: 48px 0 32px; text-align: center; }
+    .page-header h1 { font-size: 2.4rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 8px; }
+    .page-header h1 .gradient-text {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .page-header .subtitle { color: var(--color-text-muted); font-size: 1.05rem; max-width: 600px; margin: 0 auto; }
+
+    .section-title {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;
+      display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+    }
+    .section-title .icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .section-title .icon.purple { background: rgba(124, 58, 237, 0.1); }
+    .section-title .icon.teal { background: rgba(6, 182, 212, 0.1); }
+    .section-title .icon.green { background: rgba(16, 185, 129, 0.1); }
+    .section-title .icon.orange { background: rgba(245, 158, 11, 0.1); }
+
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .card p { color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.8; }
+    .card p + p { margin-top: 16px; }
+
+    /* Skills Grid */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    .skill-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px;
+      border-radius: 100px;
+      font-size: 0.85rem; font-weight: 500;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg);
+      transition: all 0.2s;
+    }
+    .skill-chip:hover {
+      border-color: var(--color-accent);
+      background: rgba(124, 58, 237, 0.05);
+      transform: translateY(-1px);
+    }
+    .skill-chip .dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .skill-chip .dot.purple { background: var(--color-accent); }
+    .skill-chip .dot.teal { background: var(--color-accent-2); }
+    .skill-chip .dot.green { background: var(--color-success); }
+    .skill-chip .dot.orange { background: var(--color-warning); }
+    .skill-chip .dot.pink { background: var(--color-accent-3); }
+    .skill-chip .dot.blue { background: #3b82f6; }
+    .skill-chip .dot.indigo { background: #6366f1; }
+    .skill-chip .dot.cyan { background: #22d3ee; }
+    .skill-chip .dot.emerald { background: #34d399; }
+    .skill-chip .dot.amber { background: #fbbf24; }
+    .skill-chip .dot.rose { background: #fb7185; }
+    .skill-chip .dot.violet { background: #8b5cf6; }
+
+    /* --- Soft Skills --- */
+    .soft-skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .soft-skill-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .soft-skill-card:hover {
+      border-color: rgba(124, 58, 237, 0.3);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    .soft-skill-card .emoji { font-size: 1.6rem; margin-bottom: 8px; }
+    .soft-skill-card h4 { font-size: 0.9rem; font-weight: 700; }
+    .soft-skill-card p { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px; }
+
+    /* --- Projects --- */
+    .project-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+    .project-card:hover { border-color: rgba(124, 58, 237, 0.3); }
+    .project-card .project-number {
+      font-size: 0.75rem; font-weight: 700; color: var(--color-accent);
+      background: rgba(124, 58, 237, 0.08);
+      display: inline-block; padding: 3px 10px; border-radius: 6px; margin-bottom: 12px;
+    }
+    .project-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 16px; }
+    .project-card .project-section { margin-bottom: 12px; }
+    .project-card .project-section:last-child { margin-bottom: 0; }
+    .project-card .project-section .label {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--color-text-muted); display: block; margin-bottom: 4px;
+    }
+    .project-card .project-section .value {
+      font-size: 0.9rem; color: var(--color-text); line-height: 1.7;
+    }
+    .project-card .project-section .value ul { padding-left: 20px; margin-top: 4px; }
+    .project-card .project-section .value li { margin-bottom: 4px; }
+
+    .placeholder-note {
+      background: rgba(245, 158, 11, 0.06);
+      border: 1px solid rgba(245, 158, 11, 0.15);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 0.82rem; color: var(--color-text-muted);
+      margin-bottom: 16px;
+    }
+    .placeholder-note strong { color: var(--color-warning); }
+
+    footer { border-top: 1px solid var(--color-border); padding: 32px 0; margin-top: 48px; text-align: center; }
+    footer p { color: var(--color-text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <div class="container">
+    <nav>
+      <a href="/" class="logo">MOpsWork</a>
+      <ul class="nav-links">
+        <li><a href="/jobs.html">Job Scanner</a></li>
+        <li><a href="/applications.html">Applications</a></li>
+        <li><a href="/skills-in-demand.html">Skills</a></li>
+        <li><a href="/samples.html">Samples</a></li>
+        <li><a href="/aboutme.html" style="font-weight: 700; color: var(--color-text);">About Me</a></li>
+      </ul>
+    </nav>
+
+    <div class="page-header">
+      <h1><span class="gradient-text">About Me</span></h1>
+      <p class="subtitle">Emma Palmer — Marketing Operations &amp; Revenue Operations professional</p>
+    </div>
+
+    <!-- 3.1 Summary -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon purple">&#x1F4AC;</span>
+        Summary
+      </div>
+      <p>
+        Over 20 years working in marketing operations for global technology businesses - names like Oracle, McAfee, Symantec, and more recently Proofpoint, where I&rsquo;ve been for the past seven years. My focus has always been on the &ldquo;engine room of marketing&rdquo;, the data, the systems, the processes and the reporting that make everything else work.
+      </p>
+      <p>
+        I get energised by taking complexity and turning it into something clean and scalable, whether that&rsquo;s building a lead scoring model, fixing a routing problem that&rsquo;s been quietly losing leads, or creating a dashboard that gives leadership genuine visibility into pipeline. I&rsquo;m equally comfortable getting into the detail as I am presenting insights to senior stakeholders.
+      </p>
+      <p>
+        What I bring to a role is that blend of technical know-how and commercial awareness. I care about the numbers, but only because I care about the business impact behind them. I am the &ldquo;human-in-the-loop&rdquo; in an AI-driven world. It is my belief that tools can be learnt &mdash; a good MOps person with good instincts can learn any platform. Business instincts however are only instinctive.
+      </p>
+    </div>
+
+    <!-- 3.2 Hard (Technical) Skills -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon teal">&#x1F4E1;</span>
+        Hard &amp; Technical Skills
+      </div>
+      <div class="skills-grid">
+        <div class="skill-chip"><span class="dot purple"></span>Database Management</div>
+        <div class="skill-chip"><span class="dot purple"></span>Statistical Analysis</div>
+        <div class="skill-chip"><span class="dot teal"></span>Data Mining</div>
+        <div class="skill-chip"><span class="dot teal"></span>Campaign Management</div>
+        <div class="skill-chip"><span class="dot green"></span>Process Optimisation / Improvement</div>
+        <div class="skill-chip"><span class="dot green"></span>Project Management</div>
+        <div class="skill-chip"><span class="dot orange"></span>Marketing Operations</div>
+        <div class="skill-chip"><span class="dot orange"></span>Vibe Coding</div>
+        <div class="skill-chip"><span class="dot pink"></span>Lead Lifecycle</div>
+        <div class="skill-chip"><span class="dot pink"></span>Buyer&rsquo;s Journey</div>
+        <div class="skill-chip"><span class="dot blue"></span>KPI Management</div>
+        <div class="skill-chip"><span class="dot blue"></span>Performance Reporting</div>
+        <div class="skill-chip"><span class="dot indigo"></span>Marketo</div>
+        <div class="skill-chip"><span class="dot indigo"></span>SFDC</div>
+        <div class="skill-chip"><span class="dot cyan"></span>Attribution Modelling</div>
+        <div class="skill-chip"><span class="dot cyan"></span>GTM Architecture</div>
+        <div class="skill-chip"><span class="dot emerald"></span>CRM Architecture &amp; Strategy</div>
+        <div class="skill-chip"><span class="dot emerald"></span>Lead Scoring</div>
+        <div class="skill-chip"><span class="dot amber"></span>Lead Management</div>
+        <div class="skill-chip"><span class="dot amber"></span>PowerBI</div>
+        <div class="skill-chip"><span class="dot rose"></span>AI-driven Data Hygiene</div>
+        <div class="skill-chip"><span class="dot rose"></span>AI-driven Data Normalisation</div>
+        <div class="skill-chip"><span class="dot violet"></span>Regulatory Compliance (GDPR)</div>
+        <div class="skill-chip"><span class="dot violet"></span>Marketing &amp; BDR Enablement</div>
+      </div>
+    </div>
+
+    <!-- 3.3 Soft Skills -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon green">&#x1F91D;</span>
+        Personal Attributes
+      </div>
+      <div class="soft-skills-grid">
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F91D;</div>
+          <h4>Cross-Functional Collaboration</h4>
+          <p>Works effectively across marketing, sales, data, and product teams</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F9E0;</div>
+          <h4>Problem Solving</h4>
+          <p>Finds elegant solutions to complex operational challenges</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F4AA;</div>
+          <h4>Accountability</h4>
+          <p>Owns outcomes end-to-end, no hand-off gaps</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F50D;</div>
+          <h4>Curious</h4>
+          <p>Constantly learning and exploring new tools, approaches, and data</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F465;</div>
+          <h4>Teamwork</h4>
+          <p>Builds trust and momentum across distributed teams</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F504;</div>
+          <h4>Adaptability</h4>
+          <p>Thrives in evolving environments and shifting priorities</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F394;</div>
+          <h4>Integrity</h4>
+          <p>Honest, transparent, and data-driven in every decision</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F4CB;</div>
+          <h4>Dependability</h4>
+          <p>Consistently delivers on commitments without supervision</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F4E2;</div>
+          <h4>Effective Communication</h4>
+          <p>Explains technical concepts to non-technical stakeholders with clarity</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F4A1;</div>
+          <h4>Critical Thinking</h4>
+          <p>Analyses problems from multiple angles before acting</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F393;</div>
+          <h4>Willingness to Learn</h4>
+          <p>Embraces feedback, upskills proactively, stays current</p>
+        </div>
+        <div class="soft-skill-card">
+          <div class="emoji">&#x1F49C;</div>
+          <h4>Empathy</h4>
+          <p>Understands user needs, stakeholder pressures, and team dynamics</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3.4 Projects -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon orange">&#x1F4C2;</span>
+        Projects (Pre-AI Era)
+      </div>
+
+
+      <div class="project-card">
+        <div class="project-number">Project 1</div>
+        <h3>AI-Driven Lead Data Normalisation &amp; Deduplication Architecture &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The CRM and Marketo databases—housing over 2,000,000 records—were severely degraded by data fragmentation, malformed entries, and high duplication rates. This unstructured data diluted campaign segmentation accuracy, inflated email bounce rates, compromised lead scoring logic, and forced the marketing team to waste hours each month on manual data cleansing.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to architect and execute a company-wide, AI-driven data normalisation and deduplication project. The framework needed to parse a massive dataset, resolve complex merging conflicts (such as differentiating Partner versus End User account structures and navigating locked Support Contacts), and establish a sustainable, automated monthly data hygiene cadence.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>AI Integration &amp; Threshold Tuning: Deployed AI data-matching tools to programmatically identify, standardise, and merge malformed records across systems. Continually fine-tuned AI confidence thresholds to mitigate initial false-positive matches, instituting a human-in-the-loop review for complex edge cases.</li><li>Complex Deduplication Logic: Engineered advanced merging rules to navigate highly complex database conflicts, specifically addressing the identification of Partner versus End User records scattered across duplicate account types.</li><li>Cross-Functional Governance: Brokered clear, enterprise-wide rules of engagement for record ownership and merging permissions, successfully navigating departmental resistance when standardising highly guarded records like Support Contacts.</li><li>Automated Hygiene Cadence: Transitioned the business from ad-hoc, manual list scrubbing to a highly governed, automated monthly data hygiene cadence.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Processed over 2,000,000 records, successfully reducing database duplicates by 25% while achieving a 90% deduplication accuracy rate. The AI-driven standardisation boosted email segmentation accuracy to over 80%, drastically reduced email bounces, improved lead scoring precision, and slashed manual data preparation time by 50%. The automated monthly cadence remains the baseline data hygiene standard for the business.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project demonstrated that managing an enterprise database at scale requires more than just basic deduplication rules; it requires advanced, AI-assisted pattern recognition. Navigating AI false-positives and complex account hierarchies reinforced that successful automation must always be paired with rigorous data governance and continuous cross-departmental alignment on data ownership.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 2</div>
+        <h3>Funnel Optimisation &amp; Lead Prioritisation Architecture &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The organisation lacked a formal operational bridge between marketing campaign execution and BDR outreach execution. Without a unified prioritisation framework, high-intent marketing qualified leads (MQLs) were subjected to standard, unoptimised outreach queues, leading to delayed speed-to-lead times, inconsistent follow-up cadences, and lost pipeline velocity.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to architect a cross-functional lead prioritisation and SLA framework that mapped specific marketing campaign types and engagement behaviours directly to tiered BDR outreach sequences. I needed to negotiate and establish strict lead-handoff SLAs, design a continuous feedback loop for campaign optimisation, and broker alignment between marketing and sales development leadership on tier definitions.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Tiered Prioritisation Architecture: Engineered a tiered lead matrix categorizing inbound activity into clear priority levels (P1, P2, P3) based on campaign type and member status behaviour, ensuring high-intent leads received immediate visibility.</li><li>Sequence &amp; Timeline Mapping: Aligned the prioritisation matrix directly with specific BDR outreach sequences, dictating strict, automated rules for the exact order and required timeframes for rep contact.</li><li>Cross-Functional Matrix Negotiation: Managed intensive alignment sessions between Marketing and BDR stakeholders to resolve conflicting priorities and secure a unified consensus on which campaign values mapped to each priority tier.</li><li>Funnel Governance &amp; Documentation: Authored comprehensive global lead handoff documentation and engineered a feedback mechanism, allowing BDRs to signal lead quality back to marketing for campaign optimisation.</li><li>Iterative Framework Scaling: Managed the continuous optimisation of the framework through multiple deployment phases, scaling the model through to a highly refined Version 3 (V3) deployment.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully delivered a high-velocity inbound funnel framework that substantially reduced lead response times for P1 leads and accelerated pipeline progression from MQL to Sales Qualified Lead (SQL). The standardised V3 framework resulted in a significantly higher proportion of sales-ready opportunities and established a transparent, accountable SLA culture between marketing and the sales development organisation.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project illustrated that lead generation is only as good as lead velocity. Building a successful prioritisation framework requires looking beyond system integrations to define the precise human behaviours and timeframes needed upon lead arrival, proving that operational success is achieved by continually iterating on cross-functional alignment to keep pace with evolving GTM execution.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 3</div>
+        <h3>GTM Architecture &amp; CRM Strategy Overhaul (Campaign Hierarchy &amp; Structure) &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The organisation lacked a unified global framework for managing and tracking marketing campaigns within the CRM. Field, Demand Generation, and Channel marketing teams operated under fragmented methodologies, utilising inconsistent campaign types, disparate success statuses, and misaligned lead scoring rules. This structural data silo made global reporting, precise ROI analysis, and strategic cross-regional planning impossible.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to lead a comprehensive technical and operational overhaul of Salesforce campaign objects, fields, and integration workflows with Marketo. The goal was to establish a standardised global campaign hierarchy and a mandatory, company-wide campaign nomenclature framework while brokering consensus among competitive marketing business units and coordinating engineering sprints with the SFDC IT team.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Nomenclature &amp; Taxonomy Governance: Architected a standardised global naming convention and campaign taxonomy to ensure every marketing program across the enterprise could be instantly identified by year, quarter, region, and team.</li><li>Cross-Functional Consensus Brokerage: Led intensive alignment workshops with regional Field, Demand Gen, and Channel marketing leadership to resolve conflicting requirements and secure a unified agreement on core campaign types, status transitions, and lead scoring thresholds.</li><li>Systems &amp; Integration Engineering: Partnered with the SFDC IT team to overhaul the underlying Salesforce database structure, configuring new custom fields, validation rules, and automated workflows optimised for the Marketo bidirectional sync.</li><li>Change Management &amp; Enablement: Authored and delivered a comprehensive enablement and communication rollout strategy to upskill all global marketing users on the new framework, embedding a 6-month post-launch optimisation review cadence.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully delivered a unified, single source of truth for global campaign performance, driving 100% compliance with the new enterprise-wide nomenclature and operational framework. The overhaul entirely eliminated data fragmentation across business units, radically streamlined global ROI reporting and resource planning, and established a clean, automated data foundation ready for multi-touch attribution modelling.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project illustrated that database standardisation is ultimately a challenge of change management and diplomatic governance. True operational efficiency isn't just about changing fields in Salesforce; it relies on aligning disparate teams around shared data definitions, proving that a tightly governed campaign hierarchy is the mandatory precursor to any successful enterprise-level analytics strategy.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 4</div>
+        <h3>Global Campaign Performance Reporting &amp; Pipeline Velocity Framework &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The organisation lacked real-time visibility into marketing ROI, channel performance, and pipeline velocity. Marketing performance tracking relied on fragmented, inaccurate Salesforce reports that took five days of manual data manipulation to compile, leaving executive leadership blind to the true revenue impact of marketing investments.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to design, scale, and govern an automated marketing attribution architecture across progressive phases. The system needed to move the business from manual reporting to an automated, multi-touch account-level framework, eliminate the highly restrictive data-entry requirements of the initial CRM-native model, consolidate complex pipeline data into a single PowerBI source of truth, and navigate intense stakeholder negotiations regarding attribution timeframes.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Phase 1 Framework (Contact-Based Last-Touch): Engineered an initial Last-Touch attribution model utilising Salesforce's Campaign Influence module, which required strict manual matching of specific MQL names and timestamps on contact records tied to opportunities, creating a heavy manual data-auditing bottleneck.</li><li>Phase 2 Evolution (Account-Based MTA): Partnered with the Performance Analytics team to transition the entire framework into PowerBI. Re-engineered the backend logic to track holistic account-level engagement, completely removing the restrictive Phase 1 contact data-dependency and eliminating hours of manual data preparation.</li><li>Data Modeling &amp; Stakeholder Alignment: Developed complex data-modeling logic in PowerBI to account for diverse customer types. Managed lengthy, intensive debates with cross-functional stakeholders to align on standardised attribution lookback timeframes, managing pushback from teams advocating for longer campaign-influence windows.</li><li>Dashboard Consolidation: Built unified, real-time performance dashboards within PowerBI, consolidating global pipeline data, regional campaigns, and customer segmentation into a centralised repository.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully established an executive-level single source of truth for marketing performance, reducing reporting latency from 5 days to near-real-time while severely curtailing manual operational overhead. Shifting to the Phase 2 account-based model increased recognised marketing attribution by 30% and provided a standardised framework for cross-regional campaign ROI, despite ongoing stakeholder alignment challenges regarding lookback durations.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project demonstrated that scaling an analytics function requires removing data-entry dependencies from front-line users. Moving the attribution logic out of manual CRM fields and into automated PowerBI data schemas proved that operations must focus on account-level collectives rather than siloed contact points. Furthermore, managing the lookback window debates highlighted that defining attribution timelines is an ongoing exercise in stakeholder compromise.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 5</div>
+        <h3>Territory Management &amp; Speed-to-Lead SLA Optimisation &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The organisation lacked a centralised, automated system to ensure inbound leads were efficiently routed to the correct sales representatives across diverse global regions, market segments, and business units. Inefficiencies in the lead lifecycle caused assignment delays, while data sync volume constraints between Marketo and Salesforce (SFDC) threatened speed-to-lead times and SLA compliance.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to completely overhaul and optimise an underperforming LeanData routing infrastructure natively inside Salesforce. The framework needed to be rebuilt to filter out junk data, enforce strict Go-to-Market (GTM) territory models, match leads to parent accounts with near-perfect accuracy, and remain resilient against constant sales team turnover and data-sync limitations.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Infrastructure Audit &amp; Vendor Collaboration: Audited the existing, unoptimised LeanData setup to identify routing bottlenecks and dead ends. Partnered strategically with LeanData Support to validate best-practice routing architecture.</li><li>Advanced Logic Engineering: Rebuilt and modernised complex territory maps, lead-to-account fuzzy matching rules, named-account ownership logic, and weighted round-robin pools inside SFDC using LeanData's FlowBuilder.</li><li>Exception Governance: Implemented weekly auditing cadences to capture missed assignments, temporarily routing orphaned records to sales managers during rep transitions.</li><li>Data Enrichment Integration: Integrated data enrichment and AI tools at the point of ingestion to dynamically append missing firmographic data, maximising assignment accuracy.</li><li>Sync Optimisation Workaround: Navigated massive data sync constraints by structuring heavy, non-critical database sync updates between Marketo and Salesforce to run exclusively on weekends, protecting system bandwidth during peak business hours.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully transformed a broken routing setup into a high-performance engine, achieving near-100% lead assignment automation through robust account-level matching and automated data filtering. The optimised engine significantly accelerated speed-to-lead response times, eliminated manual queue management, protected account ownership integrity, and maintained strict SLA enforcement across all active global sales teams.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project proved that inherited system debt can heavily throttle sales velocity if left unchecked. Rebuilding LeanData with the assistance of vendor support taught me the value of auditing existing routing flows thoroughly, showing that true operational agility comes from optimising what is broken rather than just adding layers of complexity to a flawed foundation.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 6</div>
+        <h3>Global Privacy Governance &amp; Regulatory Compliance Infrastructure Initiative &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The organisation lacked a centralised, auditable tracking system for data processing grounds, consent dates, and acquisition sources. Relying solely on basic opt-in/out checkboxes exposed the business to significant regulatory compliance risks under European privacy legislations (such as GDPR), as teams could not instantly provide a verifiable audit trail of how or why data was captured.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to design a comprehensive Preference and Consent Centre architecture within Salesforce and Marketo. This required navigating a fundamental geographic compliance mismatch: bridging the gap for a primarily US-based Legal team accustomed to domestic privacy frameworks, and upskilling them on the stringent technical infrastructure required to satisfy European data provenance audits.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Cross-Border Regulatory Advisory: Acted as the core operational advisor to the US-based Legal team, translating complex European "opt-in and prove it" regulatory requirements into tangible MarTech data-field requirements.</li><li>Compliance Architecture Design: Frameworked a robust compliance model incorporating detailed metadata fields—going beyond binary opt-out toggles to track explicit processing reasons and consent origins.</li><li>Intake Governance Protocols: Established a standardised Jira intake workflow to systematically track, manage, and audit data privacy requests received via web or email, documenting request depth and communication histories.</li><li>Tactical Data Exposure Workaround: When the full automated infrastructure was deferred by the US legal and systems teams, I pivoted to leverage existing infrastructure by unhiding and surfacing the Original Data Source field—captured by Marketo—directly onto Salesforce layouts to provide an immediate manual audit trail.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully established an immediate, auditable data privacy baseline while driving global alignment on regional compliance variances. Surfacing Marketo's captured data source fields directly inside Salesforce closed a critical visibility gap for front-line teams, while the Jira framework introduced a rigorous audit trail for compliance tracking, significantly lowering corporate legal exposure.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project highlighted that global operations leaders must frequently bridge geographic and cultural gaps in regulatory understanding. When a US-centric corporate framework clashes with local international compliance laws, an operations leader must act as a strategic educator—finding clever platform configuration workarounds to protect the business while continuously lobbying for long-term global data governance standards.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 7</div>
+        <h3>Cross-Functional Data Governance &amp; Support Contact Integration Initiative &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The CRM architecture contained a critical blind spot: records designated as "Authorised Support Contacts" were entirely locked down by the Support team to prevent external tools from disrupting system access. Consequently, Marketo was blocked from updating these records, preventing marketing from tracking attribution, appending intent signals, or—most critically—enforcing global opt-out and privacy compliance requests.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to broker an integration framework that would surface marketing engagement and compliance data on support records within Salesforce without compromising their support centre access. I needed to design a secure technical compromise to unlock sales visibility and attribution reporting, and ultimately escalate the deadlock to executive leadership when revenue and regulatory compliance were at risk.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Risk &amp; Revenue Impact Analysis: Quantified the strategic impact of the data silo, demonstrating how the block obscured account-level marketing attribution, starved sales of intent signals, and created severe legal compliance risks regarding opt-out enforcement.</li><li>Technical Compromise Architecture: Proposed a highly governed workaround that restricted Marketo's write permissions exclusively to non-system fields (such as attribution, intent signals, and opt-out checkboxes), guaranteeing zero impact on core support functionalities.</li><li>Cross-Functional Negotiation: Partnered with the Support team to address their security concerns, acting as the operational mediator between marketing's data needs and support's operational guardrails.</li><li>Executive Escalation &amp; Governance: When the technical compromise was rejected at the team level, I prepared the business case and escalated the impasse to the respective Department Heads to resolve the structural data ownership conflict.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully elevated a critical operational bottleneck to executive-level visibility. While the escalation forced strategic conversations between Department Heads regarding data governance, the Support team maintained their strict system lockdown; as a result, the current state requires these vital records to be manually updated one by one. By fully documenting the business case, I established the baseline data and compliance risks to justify future automated remediation.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project illustrated that operations is frequently about navigating complex corporate data ownership boundaries. When a technical impasse forces a team into a highly inefficient, manual "one-by-one" update process, an operations leader's role is to exhaust all technical compromises, protect compliance as much as possible, and leave a fully audited business case ready for the next phase of enterprise infrastructure maturity.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 8</div>
+        <h3>Global Database Optimisation &amp; Geographic Data Governance Framework &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The CRM architecture lacked unified geographic tracking across different objects. While the Salesforce (SFDC) team implemented a structured hierarchy for Accounts, Leads and Contacts relied on unvalidated free-text fields. This caused massive data fragmentation, forcing the marketing team to waste hours manually building regional "buckets" for every Salesforce report, while dirty data diluted the accuracy of localised outbound campaigns.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to establish a single source of truth for global geographic data (Country, Sub-Region, Region) across all Leads and Contacts to match the existing Account layout. Despite lacking an executive sponsor and facing resistance from the SFDC and Finance teams due to downstream system complexities, I needed to engineer a solution to eliminate manual data-cleansing and maximise campaign segmentation accuracy.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Data Governance Consultation: Acted as the core data governance advisor when the SFDC team purchased an outdated global data file, successfully auditing their dataset and insisting on the enforcement of the most up-to-date, standardised country nomenclature.</li><li>Web Form Standardisation: Enforced data hygiene at the point of ingestion by migrating 95% of digital web forms to a strict, pre-defined "Country" picklist aligned with these modern data standards.</li><li>Marketo Automation Workaround: When the CRM-native project was deferred due to finance system complexities, I pivoted and engineered advanced Marketo normalisation programs to programmatically parse, clean, and map the remaining free-text data and non-compliant offline lists (such as inconsistent AMER uploads).</li><li>Reporting Streamlining: Designed regional mapping rules to eliminate the repetitive task of manually creating regional report groupings in Salesforce and PowerBI.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully established absolute data standards across the business by correcting the SFDC team's third-party database acquisition. By pairing this data consulting with automated Marketo workflows, I achieved 75% geographic data accuracy across global records, severely curtailing manual data-cleaning loops, reducing executive reporting time, and unlocking higher conversion rates through precision regional segmentation.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project proved that Marketing Operations must often act as the ultimate gatekeeper for data integrity across the entire enterprise. Being consulted by the CRM team to correct an outdated external dataset highlighted the value of operations holding a firm line on data standards, showing that even when native system builds are blocked, you can still drive immense corporate value through consultancy and clever platform workarounds.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 9</div>
+        <h3>Global Partner Lead Routing Pilot &amp; Channel Operations Framework &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The organisation lacked an efficient, automated mechanism to nurture and follow up on inbound leads from companies with fewer than 250 employees. Because internal sales teams were focused on larger enterprise targets, this lower-commercial segment suffered from high lead drop-off, resulting in lost revenue opportunities for the sub-250 product suite.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to partner with the Senior Director of EMEA Channel Marketing to architect and execute a cross-regional pilot program to route these sub-250 leads to strategic channel partners. The goals were to increase lead-to-opportunity conversion rates, upskill regional marketing leadership on the underlying MarTech data structures, and evaluate the operational feasibility of scaling the program globally.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Strategic Leadership Alignment: Partnered directly with the Senior Director of EMEA Channel Marketing to co-design the pilot, acting as the operational advisor to bridge the gap between their channel strategy and system capabilities.</li><li>Executive Upskilling &amp; Enablement: Coached and upskilled the Senior Director and their regional teams on MarTech process logic, data schema limitations, and lead-to-opportunity mapping to ensure full visibility into the pilot's performance.</li><li>Pilot Program Design: Launched the partner lead-handoff framework across five countries and three global regions, establishing a collaborative co-selling model for the SMB market.</li><li>Infrastructure Audit: Discovered and documented critical API and partner portal limitations that prevented automated lead recognition, providing data-backed evidence to leadership regarding system gaps.</li><li>M&amp;A Alignment &amp; Strategic Pivot: Analysed the high manual overhead against an upcoming company acquisition. Advised leadership to pause the technical build, recognising that the newly acquired entity's sales force would natively absorb this segment in six months.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully validated the commercial viability of the partner-routing model while significantly elevating the MarTech data literacy of EMEA channel leadership. By identifying technical portal gaps early and mapping them against the M&amp;A roadmap, I partnered with the Senior Director to save the business significant engineering costs, deferring an expensive infrastructure build in favour of an imminent organisational synergy.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project highlighted that excellent operations relies heavily on advisory and education. Working side-by-side with the Senior Director of EMEA Channel Marketing to upskill their process knowledge ensured we were aligned not just on the strategic 'why,' but the operational 'how.' Pausing the technical build to leverage an upcoming corporate acquisition demonstrated how MarTech roadmaps must remain flexible to align with broader corporate M&amp;A strategies.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 10</div>
+        <h3>Automated Campaign Intake &amp; Lifecycle Orchestration Framework &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The marketing team initially lacked a standardised mechanism for requesting campaigns, leading to fragmented data, missing metrics, and a heavy manual burden to get programs logged into Salesforce.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to design an end-to-end campaign intake system. The solution needed to enforce strict data governance through pre-defined validation lists, automatically bridge data formatting between systems, initiate technical execution tickets, and scale over time from a spreadsheet prototype into an automated cloud workflow.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>V1 Prototype Engineering: Initially architected and deployed a foundational intake process using advanced Microsoft Excel workbooks, leveraging strict data validation rules to force clean, structured entries from users at the point of request.</li><li>V2 Cloud Evolution: Scaled the prototype into a modern cloud ecosystem by developing a standardised Microsoft Forms template built with pre-defined Lists of Values (LOVs) to eliminate manual typing errors.</li><li>IT Collaboration &amp; Automation: Partnered closely with the internal IT infrastructure team to configure backend Power Automate cloud flows that securely parsed the forms payload, automatically mapping the data into the exact column schema required for Salesforce campaign uploads.</li><li>Systems Integration: Structured the automated workflow to trigger the instant creation of corresponding execution and tracking tickets within Jira upon form submission.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully eliminated ad-hoc campaign requests by evolving a manual spreadsheet-validation process into a secure, fully automated intake ecosystem. By collaborating with IT, we ensured enterprise-grade security and governance, while dramatically accelerating time-to-execution, reducing manual data-mapping steps, and ensuring 100% data consistency for Salesforce analytics.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project highlighted the power of iterative development in operations. Starting with a rigid Excel data-validation template allowed me to prove the value of structured intake before partnering with IT to scale it into a secure, automated Power Automate workflow. The next strategic phase is evaluating how an AI agent can safely handle the final Salesforce provisioning step post-human check.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 11</div>
+        <h3>Marketing SOP Hub (Resources Centre) &middot; Company 1</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The marketing, sales, and Business Development Representative (BDR) teams lacked a centralised location for marketing operations services. This led to fragmented information, a high volume of repetitive questions, and friction when requesting support, as there were no clear guidelines on task turnaround times.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My goal was to design and launch a comprehensive "Marketing SOP Hub" (Resource Centre) hosted within Marketo. The platform needed to consolidate all training documentation, request forms, and essential links, while formally establishing operational SLAs so requesters knew exactly how long each type of task would take.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Researched &amp; Audited: Dedicated time to audit existing processes, identifying frequent team questions and gaps in resource availability.</li><li>Defined SLAs: Evaluated operational capacity to establish clear, realistic Service Level Agreements (SLAs) for various types of everyday and ad-hoc marketing operations tasks.</li><li>Content &amp; Hub Creation: Developed and updated standardised operating procedures (SOPs) and intake forms, embedding the clear SLA timelines directly into the request submission workflows.</li><li>System Architecture: Built and structured the repository inside Marketo, ensuring an intuitive, easy-to-navigate format for cross-functional users.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully delivered a "single source of truth" website utilised by the entire cross-functional organisation. The hub streamlined engagement with the marketing operations team, drastically reduced repetitive inquiry volume, and managed requester expectations by providing transparent visibility into task SLAs.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">While researching and creating the documentation required a significant upfront time investment, the integration of clear SLAs was a game-changer. It transformed the marketing operations team from a reactive support unit into a structured, predictable service partner, significantly improving cross-departmental trust and efficiency. Looking forward, the next logical evolution of this framework is to leverage advanced AI development tools like Cursor and 'vibe coding' models to dynamically generate, update, and deploy these interactive guides via natural language, drastically cutting down manual upkeep time.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 12</div>
+        <h3>Global Marketing Strategic Planning &amp; Spend Optimisation &middot; Company 2</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">A global marketing team spanning multiple departments—including Field, Demand Generation, Product, Executive, and Marketing Operations (MOps)—lacked a unified, reliable mechanism to plan, manage and audit global spend. Budget tracking relied on fragmented spreadsheets, causing visibility gaps, a lack of alignment with Finance, and a high risk of budget variance.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to research, select, and implement a dedicated enterprise marketing budget management tool. The platform needed to serve as a single financial pane of glass for all global marketing teams and Finance, integrate with Salesforce (SFDC) to tie spend directly to pipeline performance, and enable robust auditing.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Vendor Evaluation: Sourced and managed technical demos for three leading marketing resource management (MRM) tools, assessing features against our global scale.</li><li>Tool Selection: The stakeholder team selected Allocadia (now Uptempo) as the optimal fit for our cross-functional requirements. We also evaluated Anaplan and Hive9.</li><li>Integration &amp; Data Auditing: Led the deployment and data mapping to integrate the tool with Salesforce, establishing consistent audit trails for global spend.</li><li>Change Management: Navigated organisational resistance across different teams by designing tailored training, addressing technical hesitations, and demonstrating the platform's value to individual department leads.</li><li>Finance Collaboration: Partnered closely with the Finance team to align our budget structures, navigating the limitation that the tool could not directly integrate with the corporate procurement/PO software.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully delivered a centralised marketing budget ecosystem adopted by all regional marketing functions and Finance. The implementation eliminated spreadsheet reliance, established continuous auditing capabilities, and bridged the visibility gap between marketing investment and SFDC sales pipeline—giving the executive team total clarity on global ROI.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">While driving adoption amidst user resistance and working around the lack of a native finance PO integration was challenging, the project proved that software alone doesn't solve process gaps. Securing buy-in from Finance early on allowed us to design manual alignment workflows that successfully bridged the technical gap, proving that cross-functional alignment is just as critical as system integration.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 13</div>
+        <h3>Global Talent Assessment &amp; Shared Services Onboarding &middot; Company 3</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The marketing operations shared services centre in Pune, India, required new hires to possess strong, day-to-day Excel proficiency to handle the team's core workload. Without a standardised way to verify these technical skills during the interview process, there was a risk of onboarding individuals who lacked the baseline capabilities, leading to performance gaps or high early turnover.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was twofold: design and implement an objective technical assessment for the second stage of the interview process to filter for necessary Excel skills, and subsequently lead a comprehensive, remote onboarding program to transition successful hires into the team.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Assessment Design: Developed a practical Excel test incorporating essential formulas, data manipulation tasks, and functions specific to the operational needs of the shared services centre.</li><li>Candidate Evaluation: Strictly evaluated candidate submissions, using the test as a hard gateway; only those who demonstrated the required formula proficiency advanced to final-round interviews.</li><li>Collaborative Training Delivery: Once candidates were onboarded, partnered with colleagues to build and deliver a structured, week-long intensive training program via Webex.</li><li>Curriculum Coverage: Led sessions covering internal company processes, data workflows, and the broader marketing technology (MarTech) stack to ensure full alignment with global operations.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully standardised the technical hiring criteria for the Pune hub, ensuring 100% of new hires possessed verified, baseline Excel capabilities before their start date. This rigorous selection and robust onboarding process directly contributed to exceptional, long-term talent retention; the chosen hires stayed with the business for approximately six years, far exceeding typical industry tenure for offshore operational hubs.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">Introducing a hard technical gate early in the interview process saved significant management time by filtering out candidates who weren't an operational fit before the final rounds. The long-term retention achieved proved that investing heavily in a standardised screening process and a collaborative onboarding week pays massive dividends in team stability, cross-border trust, and lasting professional relationships.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 14</div>
+        <h3>Marketing Investment Rationalisation &amp; Trend Analysis &middot; Company 4</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">In 2012, the organisation lacked a structured, data-driven approach to evaluating the return on historical marketing investments. Planning and budget allocation for upcoming fiscal years relied on static assumptions rather than concrete historical performance data across different markets and initiatives.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to extract, clean, and analyse historical internal campaign performance data from Salesforce (SFDC) to uncover investment trends. The goal was to provide leadership with clear, data-backed insights by country, region, strategic objective, and program type to drive smarter, more predictive fiscal year planning.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Data Extraction &amp; Structuring: Sourced and consolidated extensive cross-border marketing campaign data directly out of Salesforce.</li><li>Advanced Data Analysis: Built comprehensive data models in Microsoft Excel, utilising advanced formulas, VLOOKUPs, and pivot tables to slice the data by distinct dimensions (geography, program type, and corporate objective).</li><li>Performance Benchmarking: Evaluated past outcomes to identify high-performing marketing programs and regional variations in campaign efficiency.</li><li>Strategic Insights Delivery: Translated complex data arrays into clear trend analyses to guide marketing leadership on where to replicate success or pivot strategies.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully delivered a foundational campaign performance analysis that shifted the organisation toward a data-driven planning model. By mapping past outcomes directly to geographical and program-specific variables, marketing leadership was able to optimise budget allocations and make highly informed investment decisions for the current and subsequent fiscal years.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project highlighted the immense value of core data analytics skills. Even before specialised business intelligence (BI) tools became industry standard, leveraging robust Excel formulas and pivot tables against Salesforce data proved that operational data, when properly structured, is an organisation's most powerful tool for predictable fiscal planning.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 15</div>
+        <h3>Global MarTech Governance &amp; Operational Enablement Framework &middot; Various</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The global marketing, sales, and Business Development Representative (BDR) teams operated without a centralised, multi-format documentation library. This lack of standardised governance led to process inconsistencies across critical operational functions—such as lead management, compliance, and data execution—and caused a high volume of repetitive enablement questions for the Marketing Operations team.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to architect, author, and maintain a comprehensive suite of Standard Operating Procedures (SOPs) and enablement materials. The documentation needed to cater to different user needs—categorizing workflows into "need-to-know" strategic information vs. execution-focused "action" items—while covering the entire spectrum of our MarTech infrastructure and data compliance rules.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>SOP Content Architecture: Authored and designed a multi-format resource library including comprehensive step-by-step walkthroughs, video tutorials, and highly scannable one-pager cheat sheets.</li><li>Core Pillars Documented: Systematically mapped out and documented 12 critical operational areas, including technical workflows (Lead Scoring, Lead Routing, List Imports (including templates), Campaign Nomenclature, Data Requests, Campaign Requests, Program Types), compliance (Privacy/GDPR), strategy (Persona/ICP Definitions), and analytics (Marketing Attribution, Reports/Dashboards).</li><li>Enablement Framework: Developed the "How to use MOps Hub" guide, explicitly separating strategic governance from tactical execution steps to ensure intuitive cross-departmental adoption.</li><li>Lifecycle Maintenance: Established and executed an annual review and auditing cycle to ensure all materials, system configurations, and compliance guidelines remained accurate and up to date.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully established an enterprise-wide operational framework that standardised execution across the global go-to-market (GTM) organisation. This self-service enablement strategy significantly accelerated onboarding for new hires, reduced data input errors, protected data compliance via strict privacy guidelines, and dramatically minimised incoming ad-hoc support tickets for the MOps team.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">Building an enablement library of this scale taught me that documentation is only as good as its adoption. By breaking down complex MarTech processes into multi-format content (videos vs. quick one-pagers), the business was able to drive higher user engagement, proving that proper enablement is just as vital as the technical build itself.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 16</div>
+        <h3>Salesforce Campaign Governance &amp; Data Hygiene Audits &middot; Various</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">Without regular oversight, marketing campaigns logged in Salesforce (SFDC) were prone to incomplete data entry, missing lead attribution details, and outdated budget tracking, which compromised global reporting accuracy and ROI metrics.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to establish a routine (monthly) auditing process for Salesforce campaigns to enforce absolute data integrity, ensure full lead capture compliance, and maintain accurate fiscal tracking across all active programs.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Data Quality Auditing: Conducted systematic reviews of active Salesforce campaigns to verify that all mandatory fields, metadata, and naming conventions were completed accurately.</li><li>Cross-Functional Enforcement: Flagged non-compliant campaigns and coordinated directly with campaign owners to remediate data gaps, ensuring that outstanding campaign leads were submitted promptly for accurate attribution.</li><li>Financial Accountability: Audited budget vs. actual cost entries, prompting campaign owners to keep financial data up to date to support accurate marketing spend analytics.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully improved the data accuracy of the Salesforce campaign database, directly enhancing the reliability of marketing performance dashboards. This continuous governance loop eliminated missing lead pipelines and provided leadership with a more accurate picture of real-time marketing ROI.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project reinforced that enterprise data hygiene is an ongoing discipline, not a one-time setup. Establishing an auditing loop proved that operations must actively enforce accountability around data and budgets to ensure executive dashboards stay trustworthy.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 17</div>
+        <h3>Automated Persona Mapping &amp; Ideal Customer Profile (ICP) Architecture &middot; Various</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The global database contained fragmented, non-standardised job titles from various lead-generation sources. This lack of structure prevented marketing teams from executing precise segmentation, hindered account-based marketing efforts, and made it difficult to immediately distinguish high-value target buyers from non-target leads.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to engineer an automated data-normalisation framework within Marketo. The system needed to automatically parse and map diverse global job titles into standardised personas and hierarchical levels, providing clean data slices for marketing segmentation and refining our core Ideal Customer Profile (ICP) definitions.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Marketo Workflow Engineering: Designed and deployed automated smart campaigns and data-routing flows within Marketo to dynamically parse incoming job titles at the point of ingestion.</li><li>Localisation Data Architecture: Developed robust keyword-matching matrices to account for and normalise global job titles across multiple languages, ensuring seamless data structure across international regions.</li><li>Persona Taxonomy Design: Categorised raw multilingual titles into highly targeted, standardised personas, explicitly segmenting high-value cohorts including IT Buyers, IT Users, Financial Buyers, C-Level Influencers, and Senior Leaders.</li><li>ICP Integration: Combined the automated persona data with broader demographic and firmographic variables to construct and scale the organisation's data-driven Ideal Customer Profiles (ICP).</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully transformed a messy, multi-language global database into a structured, highly segmentable asset. The automated Marketo flows eliminated manual international list-cleaning bottlenecks, provided immediate visibility into target vs. non-target leads across global regions, and empowered marketing to run hyper-personalised campaigns that significantly increased engagement and conversion rates.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project highlighted that global scalability requires a localisation mindset from the data layer up. Automating the bridge between raw, multilingual text fields and structured buyer personas proved that clean data is the ultimate fuel for personalised marketing and strategic international ICP alignment.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 18</div>
+        <h3>Global Campaign Nomenclature &amp; Reporting Governance Architecture &middot; Various</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">Across multiple organisations, marketing and sales leadership lacked a robust, standardised campaign naming taxonomy. This absence of structure resulted in inconsistent data entries, fragmented databases, and manual data-cleansing bottlenecks that heavily distorted global reporting, performance analysis, and ROI attribution.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My objective was to design, implement, and enforce a unified global CRM campaign taxonomy. The nomenclature needed to be intuitive for cross-functional teams to execute while embedding rich, multi-dimensional metadata directly into every campaign name for instantaneous filtering and reporting at the executive level.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Taxonomy Framework Design: Conceptualised and deployed a standardised, programmatic naming convention across multiple companies that consolidated critical variables into a single string.</li><li>Metadata Integration: Structured the nomenclature to instantly communicate explicit operational layers: Timeline (Year/Quarter, Event Dates), Geography (Region, Country, specific Event Location), Ownership (Department/Team), and Tactical Execution (Campaign Type, specific Activity Name).</li><li>System Enlistment &amp; Automation: Hardcoded these structures into the marketing automation platform (Marketo) and CRM (Salesforce) validation rules to enforce compliance at the point of campaign creation.</li><li>Cross-Functional Enablement: Authored global governance documentation and delivered training across decentralised international teams to ensure seamless alignment and 100% adoption.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully established absolute data consistency across global CRM environments at multiple organisations. The unified taxonomy completely eliminated manual data manipulation for reporting, unlocked instant and accurate cross-regional analytics, and allowed executive stakeholders to filter and review marketing performance seamlessly by region, team, or program type.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">Implementing this framework across four different companies proved to me that data hygiene is the bedrock of marketing analytics. A truly robust campaign nomenclature transforms raw CRM entries into an organised data warehouse, proving that scaling an operations function always begins with standardised, foundational governance.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Business Projects AI-Enhanced -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon teal">&#x1F4A1;</span>
+        Business Projects (AI-Enhanced)
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 1</div>
+        <h3>Data Standardisation &middot; Job Function and Level Mapping &middot; Various</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">Our marketing database lacked consistent demographic classification for job titles, which directly hindered marketing segmentation and sales alignment. Leads were sync'd between Marketo and Salesforce without standardised function or seniority level metrics. This data fragmentation resulted in broad, generic marketing campaigns and left Business Development Representatives (BDRs) without the precise persona insights needed to tailor their outbound sales calls effectively.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">The objective was to ingest a massive, unorganised list of raw job titles, accurately categorise them into standardised "Job Function" and "Job Level" buckets, and update our core go-to-market tech stack (Marketo and Salesforce). The goal was to establish a reliable baseline of clean data to immediately improve campaign segmentation and BDR efficiency, while laying the groundwork for automated, machine-learning-driven classification.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Data Scripting &amp; Processing: Built and executed a Python script within Google Colab to programmatically parse the raw job title strings and map them into predefined function and seniority level buckets.</li><li>Data Governance &amp; Quality Assurance: Extracted the processed data into a CSV format to perform a meticulous manual review, overriding anomalies and refining edge-case misclassifications to ensure absolute data integrity.</li><li>Systems Integration &amp; Synchronization: Orchestrated the data upload into the master system of record, successfully pushing the updated, standardised attributes into Marketo and managing the bidirectional sync to Salesforce.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value"><ul><li>Enhanced Campaign Segmentation: Enabled highly targeted marketing campaigns based on precise personas and seniority tiers, drastically reducing audience waste.</li><li>Improved Sales Velocity: Empowered the BDR team with clear demographic insights directly inside the CRM, allowing them to deploy highly tailored, high-converting messaging on their calls.</li><li>Data Integrity Baseline: Transformed a chaotic data field into a clean, structured master dataset across the entire marketing technology stack.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection / Next Steps</span>
+          <div class="value">While the automated script and manual review successfully resolved the immediate data debt, the current rule-based mapping in Marketo lacks long-term adaptability for complex or novel job titles. The logical next phase of this project is to transition from static scripting to predictive AI. I am currently scoping a machine learning classification model trained on this newly established, clean historical baseline. This model will dynamically learn from current values to automatically, predictably, and accurately assign functions and levels to net-new leads moving forward.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 2</div>
+        <h3>Data Normalisation &middot; Job Title Architecture &middot; Various</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">Our GTM database suffered from a high volume of unstandardised, multi-lingual job titles. This fragmentation blocked localised marketing campaigns and prevented global BDR alignment, as persona data was heavily corrupted or missing.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">I needed to cleanse and standardise global job title variations into a unified hierarchy consisting of "Job Function," "Job Level," and "Persona" categories, ensuring compliance with strict data protection boundaries.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Operating within a secure Enterprise ChatGPT environment behind the corporate firewall, I uploaded the global raw datasets.</li><li>I initiated a multi-stage iterative prompting loop to systematically process non-English titles and highly ambiguous entries.</li><li>Recognising the need for consistency, I converted this setup into a reusable ChatGPT Project, establishing strict guardrails and reference parameters to iteratively refine edge-case classifications.</li><li>After validating the data outputs, I exported the cleansed dataset via CSV for system deployment.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully built a scalable, repeatable data-normalisation framework that instantly categorised thousands of messy, multi-lingual records. This unlocked localised persona-based campaign targeting and ensured BDRs were routing leads with accurate demographic insight.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">While the initial data cleanup required an iterative review loop for nuanced roles, transforming the framework into a reusable "Project" template eliminated future data debt, proving that LLMs can act as highly reliable data-governance engines when properly containerised.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 3</div>
+        <h3>Data Mapping &amp; Validation &middot; Offline Event Lead Capture &middot; Various</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">Leads captured at offline corporate events were frequently delivered by third-party vendors or regional teams in raw, non-standardised spreadsheet formats. These external lists regularly introduced corrupted layouts, duplicate, non-prospect records (such as partners and internal employees), and critical syntax errors (such as invalid emails) into our ingestion pipeline, threatening database health and delaying post-event sales follow-ups.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">I needed to architect a secure, automated framework to ingest these raw event files, map disparate columns to a rigid corporate master schema, deduplicate data, filter out non-eligible records, and cleanly isolate data anomalies before platform ingestion.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>I constructed an operational Master Template in Excel complete with cell-level validation rules.</li><li>Using Enterprise ChatGPT behind the corporate firewall, I initialised a data-mapping project anchored to this master layout as the "ground truth."</li><li>I fed the unrefined offline event lists into the secure workspace, directing the AI to dynamically realign mismatched columns, deduplicate lead records, and actively strip out partners and employee emails.</li><li>Simultaneously, the AI isolated any failed rows or malformed emails into a distinct, downloadable error file designed for quick review. The fully cleansed, structural output was downloaded as an XLSX file.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Drastically reduced manual data-cleansing lag for event lists, ensuring post-event leads were system-ready in a fraction of the time. By automatically routing out invalid entries prior to upload, the operational error rate for event lead ingestion dropped to near zero.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">While this setup successfully mitigated data-entry risks, the manual download-and-upload cycle remains a friction point. The logical next phase is to embed this AI-mapping template directly into a front-end portal. Marketers will upload their event files, review and approve the AI's validation output directly on-screen, and trigger a single-click action to push the clean records either into Jira to log an operations ticket, or directly into Marketo for automated campaign processing.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 4</div>
+        <h3>Data Matching &middot; Cross-Object Account Reconciliation &middot; Various</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The business frequently received high-value external datasets requiring immediate cross-referencing against internal CRM accounts. These typically fell into two strategic categories: 1) Targeted prospect lists from channel partners for email or telemarketing campaigns, and 2) Pre-event registration lists provided by event organisers, meant to inform Account Managers (AMs) so they could proactively reach out to their accounts. Because we lacked a direct, native API integration to dynamically query live CRM data against external files, manually reconciling thousands of naming variations to identify pipeline context was operationally impossible.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">I needed to securely cross-reference these external partner and event lists against internal CRM data to accurately map company names to existing Account Objects, returning critical operational metadata including Account Manager, Account Status, and the number of open opportunities.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Leveraging our secure, firewall-protected Enterprise ChatGPT instance, I extracted a comprehensive master report of our existing CRM account database.</li><li>I uploaded both the internal and external datasets into the secure LLM workspace.</li><li>I designed specialised semantic-matching prompts that reconciled slight variations in company nomenclature (e.g., "Acme Corp" vs "Acme Corporation").</li><li>The AI stitched the corresponding internal account attributes directly onto the partner target or pre-event registration sheets, generating a consolidated CSV output.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Bypassed API limitations by using an LLM as an ad-hoc data lake. For channel campaigns, this prevented duplicate outreach and protected active client relationships. For event management, it equipped AMs with automated, pre-event visibility, enabling them to book high-value meetings with existing accounts and active prospects before the event even began.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This proved that secure enterprise AI instances can effectively solve system-silo issues and bridge data gaps where native API infrastructure or development resources are unavailable. It demonstrated that operations teams can create high-impact, account-based intelligence workflows out of completely disjointed data structures.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 5</div>
+        <h3>Geographic Territory Mapping &middot; BDR Routing Architecture &middot; Various</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">The BDR team's lead assignment matrix for the United Kingdom was bound to complex, overlapping alphanumeric postcode ranges. The operational routing table needed to be entirely verticalised to be usable by automated routing software or bulk upload templates. However, we lacked a clean, ready-made master registry of all individual UK partial postcodes to anchor this mapping.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">I needed to secure an exhaustive baseline list of UK partial postcodes and cleanly map them against an abstract, horizontal list of BDR names and their assigned regional string ranges (e.g., John Doe: AB1-9, B1-9).</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Operating inside our secure Enterprise ChatGPT environment, I first directed the AI to generate and pull a comprehensive master directory of all valid UK partial postcode areas (outcodes).</li><li>Once this baseline data was established within the workspace, I uploaded our internal BDR territory rules.</li><li>I instructed the AI to act as a data compiler, programmatically unpacking the horizontal ranges into distinct entities and mapping the correct regional BDR owner to every single individual postcode line item, outputting the results in a clean, verticalised two-column format.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Transformed a complex, unparsed territory policy into an actionable database lookup table. By leveraging the AI to both source the core geographic data and execute the relational mapping, I eliminated manual compilation and generated a schema completely ready for direct ingest into our lead routing engine.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">While this initial pilot was successfully contained to a single country's distribution, the logic was built modularly so that the same text-parsing prompt structure can be instantly applied to resolve complex territory assignments globally. Sourcing the structural data directly via the LLM proved that AI can act as both an information gatherer and a data architect simultaneously.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 6</div>
+        <h3>Technical Operations Helper &middot; SFDC &amp; Excel Logic Engineering &middot; Various</h3>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">Building advanced operational reports routinely requires complex, nested programmatic logic across both Salesforce custom fields and analytics spreadsheets. Debugging syntax errors or managing platform limitations can lead to significant delays.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">I needed to rapidly architect, test, and iterate on advanced platform calculations—including customised Salesforce reporting formulas and deep Excel array functions (INDEX(MATCH), ISNUMBER(SEARCH), and nested IFERROR(VLOOKUP/CHOOSE) statements).</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>I utilised ChatGPT as an interactive, real-time code-review partner.</li><li>I systematically described my exact operational logic scenarios and platform constraints.</li><li>When encountering Salesforce formula rejections caused by unique tenant setups or character limits, I maintained an iterative back-and-forth loop with the AI—providing specific error codes to refine and optimise the formulas until perfect compilation was reached.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Cut down technical troubleshooting times by more than half. This workflow successfully deployed bulletproof reporting fields and robust data-analysis models that previously required developer intervention.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">Found that treating AI not just as a static generator, but as an interactive debugger, allows you to navigate the quirks of specific software environments like Salesforce much faster.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal Development Projects AI-Driven -->
+    <div class="card">
+      <div class="section-title">
+        <span class="icon green">&#x1F4BB;</span>
+        Personal Development Projects (AI-Driven)
+      </div>
+
+      <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.7;">
+        The following were built as a personal initiative to sharpen my technical capabilities during my recent job search. This application translates my core marketing operations knowledge into functional, AI-driven software.
+      </p>
+
+      <div class="project-card">
+        <div class="project-number">Project 1</div>
+        <h3>Application Architecture: MOps Hub &middot; Vibe Coding</h3>
+        <div class="project-section">
+          <span class="label">Context Note</span>
+          <div class="value">This project represents a shift in technical execution, leveraging Cursor and the "Vibe Coding" methodology to construct functional full-stack software via natural language directive rather than manual coding.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">Marketing Operations teams routinely face decentralised friction; standard operating procedures, list upload requests, campaign trackers, enablement docs, and attribution logic are typically scattered across fragmented wikis and spreadsheets, causing operational drop-offs.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My goal was to architect a comprehensive, centralised "Marketing Operations Hub" application to act as a unified internal workspace for all MOps services, requests, templates, and documentation.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Adopting a "Vibe Coding" paradigm, I utilised Cursor IDE combined with advanced LLMs to drive the application's development purely through strategic structural prompts.</li><li>I orchestrated the creation of a multi-tier local host application featuring interactive modules for: Data Segmentation &amp; List Management Forms, Campaign Blueprints (scaling from basic name generators to comprehensive email/landing page trackers), Opportunity Attribution models and analytics portals, and Resource libraries for enablement and role definitions.</li><li>I systematically evaluated the AI-generated code blocks, prompting Cursor to fix structural bugs, refine layout properties, and stitch the frontend forms directly into a working local environment.</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Developed a fully functioning, cohesive, and localised full-stack Marketing Operations application without manually writing foundational boilerplate code. This centralised all core MOps workflows, forms, and assets into a single dashboard.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This completely validated the power of the vibe coding methodology. By freeing an operations professional from basic syntax struggles, AI allows them to act as a pure Product Architect, translating deep domain expertise directly into scalable software applications at unprecedented speed.</div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-number">Project 2</div>
+        <h3>Application Architecture: Compass (MOps Job Search Portfolio App) &middot; Vibe Coding</h3>
+        <div class="project-section">
+          <span class="label">Context Note</span>
+          <div class="value">This project represents a breakthrough in rapid full-stack software development, leveraging Cursor IDE and DeepSeek V4 Flash under the "Vibe Coding" paradigm to build complex data structures natively via language directives.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Situation</span>
+          <div class="value">Navigating a competitive, modern job search for UK-based remote and hybrid Marketing Operations roles requires extreme efficiency. Standard job boards lack contextual relevance, while tracking multiple applications, analysing skills gaps, and tailoring highly technical cover letters, LinkedIn outreach, and hiring manager introductions manually creates a massive operational bottleneck.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Task</span>
+          <div class="value">My goal was to build a comprehensive, localised job-hunting and portfolio application tailored specifically to my career parameters. It needed to automate job scraping, dynamically score opportunities against my exact CV, manage application pipelines, and double as an interactive web-based professional portfolio.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Action</span>
+          <div class="value"><ul><li>Adopting a Vibe Coding approach in Cursor, I leveraged DeepSeek V4 Flash to develop a robust, multi-page local host application purely through natural language engineering.</li><li>I orchestrated the creation of a full-stack platform featuring: Automated Job Scanning (ingesting live roles via targeted web scraping and job board APIs focused purely on the UK hybrid/remote markets), Match Score Analysis Engine (a semantic analysis module parsing job descriptions against my uploaded CV to score compatibility), Dynamic Asset Generation (integrated pipelines that generate tailored cover letters, follow-up emails, LinkedIn posts, and bespoke hiring manager introductions), Market Intelligence &amp; Analytics (a tracking page for application pipelines alongside a "Skills in Demand" visualiser aggregated from scraped job data), and Interactive Digital Portfolio (an "About Me" and projects interface highlighting my core technical/soft skills and case studies).</li></ul></div>
+        </div>
+        <div class="project-section">
+          <span class="label">Result</span>
+          <div class="value">Successfully deployed a fully functional, localised full-stack job intelligence application without manually writing foundational code. The system cut down application preparation times by more than 70%, giving me an unfair advantage in market visibility and execution speed.</div>
+        </div>
+        <div class="project-section">
+          <span class="label">Reflection</span>
+          <div class="value">This project perfectly showcases the power of Vibe Coding. By acting as a Product Architect rather than a line-by-line coder, I translated complex business logic—data scraping, semantic scoring, and CRM-style pipeline tracking—into functioning software. The immediate next phase is to deploy this local build to a cloud hosting environment (such as Vercel or Netlify), transforming it into a live, public-facing digital portfolio to share with recruiters and hiring managers.</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>&copy; 2026 MOpsWork. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

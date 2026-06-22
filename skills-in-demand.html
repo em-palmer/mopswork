@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skills in Demand — MOpsWork</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --color-bg: #f8f9fc;
+      --color-surface: #ffffff;
+      --color-surface-hover: #f0f2f8;
+      --color-border: #e2e5ef;
+      --color-text: #1a1a2e;
+      --color-text-muted: #6b7280;
+      --color-accent: #7c3aed;
+      --color-accent-glow: rgba(124, 58, 237, 0.25);
+      --color-accent-2: #06b6d4;
+      --color-accent-3: #f43f5e;
+      --color-success: #10b981;
+      --radius: 12px;
+      --radius-lg: 20px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --max-width: 900px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--color-accent); text-decoration: none; }
+    .bg-grid {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(124, 58, 237, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 58, 237, 0.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0; border-bottom: 1px solid var(--color-border);
+    }
+    .logo {
+      font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--color-text-muted); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--color-text); }
+
+    .page-header { padding: 48px 0 32px; }
+    .page-header h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+    .page-header h1 .gradient-text {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .page-header p { color: var(--color-text-muted); font-size: 1.05rem; max-width: 640px; }
+
+    .stats-bar {
+      display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap;
+    }
+    .stat-box {
+      flex: 1; min-width: 140px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      text-align: center;
+    }
+    .stat-box .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--color-accent); }
+    .stat-box .stat-label { font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px; }
+
+    .skill-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .skill-card:hover {
+      border-color: rgba(124, 58, 237, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    .skill-card-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .skill-card-header .rank {
+      font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted);
+      background: var(--color-bg); padding: 4px 10px; border-radius: 6px;
+      min-width: 32px; text-align: center;
+    }
+    .skill-card-header h2 {
+      font-size: 1.1rem; font-weight: 700; flex: 1;
+    }
+    .skill-card-header .pct-badge {
+      font-size: 0.85rem; font-weight: 700; color: #fff;
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      padding: 4px 14px; border-radius: 100px;
+      white-space: nowrap;
+    }
+    .skill-bar-wrap {
+      height: 6px; background: var(--color-bg); border-radius: 3px;
+      margin-bottom: 14px; overflow: hidden;
+    }
+    .skill-bar-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, var(--color-accent), var(--color-accent-2));
+      transition: width 0.6s ease-out;
+    }
+    .skill-card p { color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.7; }
+
+    .loading-state { text-align: center; padding: 64px 0; color: var(--color-text-muted); }
+    .loading-state .spinner {
+      width: 40px; height: 40px; margin: 0 auto 16px;
+      border: 3px solid var(--color-border); border-top-color: var(--color-accent);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-state { text-align: center; padding: 64px 0; color: var(--color-accent-3); }
+
+    footer { border-top: 1px solid var(--color-border); padding: 32px 0; margin-top: 48px; text-align: center; }
+    footer p { color: var(--color-text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <div class="container">
+    <nav>
+      <a href="/" class="logo">MOpsWork</a>
+      <ul class="nav-links">
+        <li><a href="/jobs.html">Job Scanner</a></li>
+        <li><a href="/applications.html">Applications</a></li>
+        <li><a href="/skills-in-demand.html">Skills in Demand</a></li>
+        <li><a href="/samples.html">Samples</a></li>
+        <li><a href="/aboutme.html">About Me</a></li>
+      </ul>
+    </nav>
+
+    <div class="page-header">
+      <h1>Skills in <span class="gradient-text">Demand</span></h1>
+      <p>Analysed from live Marketing Operations and Revenue Operations job listings. Updated with every scan.</p>
+    </div>
+
+    <div class="stats-bar" id="statsBar"></div>
+    <div id="skillsList">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Analysing job market&hellip;</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <footer>
+      <p>&copy; 2026 MOpsWork. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8003";
+
+    // Short descriptions for common MarOps/RevOps skills
+    const SKILL_DESCRIPTIONS = {
+      "salesforce": "The dominant CRM platform used across sales and marketing teams. Skills in Salesforce Admin, Sales Cloud, Marketing Cloud, and reporting are frequently requested for operations roles that bridge data and process.",
+      "hubspot": "A widely adopted inbound marketing and CRM platform. Marketing Ops professionals are expected to manage HubSpot workflows, lead scoring, email automation, and reporting dashboards.",
+      "marketo": "An enterprise-grade marketing automation platform (Adobe-owned). Marketo expertise is sought for lead management, nurture programs, and integration with CRM systems like Salesforce.",
+      "salesforce marketing cloud": "Salesforce&rsquo;s marketing automation and data engagement platform. Increasingly requested for journey building, audience segmentation, and multi-channel campaign orchestration.",
+      "eloqua": "Oracle&rsquo;s enterprise marketing automation tool. Often requested in larger organisations with complex campaign orchestration and lead-to-revenue tracking requirements.",
+      "pardot": "Salesforce&rsquo;s B2B marketing automation platform. Strong overlap with Salesforce CRM skills; roles often ask for Pardot administration and engagement studio expertise.",
+      "sql": "Structured Query Language remains essential for querying databases, building reports, and analysing marketing data. Operations roles frequently require intermediate to advanced SQL.",
+      "python": "The go-to scripting language for marketing data analysis, automation, and API integrations. Python skills signal the ability to build custom tooling beyond off-the-shelf platforms.",
+      "tableau": "A leading data visualisation tool. Marketing Ops roles use Tableau to build executive dashboards, campaign performance reports, and pipeline analytics.",
+      "power bi": "Microsoft&rsquo;s business intelligence platform. Increasingly requested for building interactive marketing dashboards and integrating with the Microsoft ecosystem.",
+      "looker": "A cloud-based BI and analytics platform (Google-owned). Looker skills are valued for creating LookML models and embedding analytics into marketing workflows.",
+      "google analytics": "The standard for web analytics. Marketing Ops professionals use GA4 and Universal Analytics to track campaign performance, attribution, and user behaviour.",
+      "ga4": "Google Analytics 4 is the latest generation of Google&rsquo;s analytics platform. Migration and implementation skills are in demand as organisations transition from Universal Analytics.",
+      "google tag manager": "A tag management system for deploying marketing and analytics tags without code changes. Essential for tracking pixels, conversion events, and third-party scripts.",
+      "crm": "Customer Relationship Management systems are foundational to RevOps and Marketing Ops. Employers look for CRM administration, data hygiene, and integration experience.",
+      "api": "Application Programming Interfaces enable marketing tools to talk to each other. API integration skills are critical for building connected marketing stacks.",
+      "rest api": "RESTful APIs are the most common integration pattern. Marketing Ops roles increasingly require experience consuming and building REST endpoints for tool synchronisation.",
+      "jira": "Atlassian&rsquo;s project management and issue-tracking tool. Often used alongside marketing operations for managing workflows, sprint planning, and cross-team collaboration.",
+      "asana": "A flexible project management platform. Marketing Ops teams use Asana to coordinate campaigns, manage content calendars, and track project milestones.",
+      "airtable": "A spreadsheet-database hybrid that marketing teams use for project tracking, content management, and lightweight CRM. Airtable skills are prized for rapid process building.",
+      "html": "HyperText Markup Language fundamentals are useful for email template customisation, landing page edits, and marketing automation content.",
+      "css": "Cascading Style Sheets knowledge helps with email design, landing page styling, and ensuring brand consistency across marketing assets.",
+      "javascript": "JavaScript skills enable advanced marketing automation, custom website tracking, and interactive dashboard development for marketing operations.",
+      "excel": "Microsoft Excel remains a staple for ad-hoc analysis, pivot tables, and data manipulation. Advanced Excel skills are a baseline expectation in many operations roles.",
+      "zapier": "A no-code automation platform connecting thousands of apps. Marketing Ops professionals use Zapier to bridge tools without developer resources.",
+      "workato": "An enterprise integration and automation platform. Workato skills are valued for building complex revenue operations workflows at scale.",
+      "salesloft": "A sales engagement platform for cadence automation. RevOps roles often manage SalesLoft provisioning, reporting, and integration with CRM.",
+      "outreach": "A leading sales engagement platform. Operations roles involve Outreach admin, sequence optimisation, and performance analytics.",
+      "6sense": "An AI-driven account engagement platform for B2B. Skills in 6sense are sought for intent data analysis, account scoring, and advertising orchestration.",
+      "demandbase": "An account-based marketing platform. DemandBase expertise is requested for ABM strategy, account identification, and personalised advertising.",
+      "sfdc": "Short for Salesforce.com. See Salesforce &mdash; the most in-demand CRM platform across Marketing and Revenue Operations.",
+      "wordpress": "The world&rsquo;s most popular content management system. Marketing Ops roles sometimes require WordPress management for landing pages, blogs, and plugin configuration.",
+      "seo": "Search Engine Optimisation knowledge helps marketing operations teams measure organic performance and collaborate with content teams on visibility strategy.",
+      "sem": "Search Engine Marketing expertise covers paid search campaigns, keyword strategy, and budget management&mdash;increasingly owned by ops teams.",
+      "ppc": "Pay-Per-Click advertising management skills are valued for overseeing Google Ads, Microsoft Ads, and social ad platforms within marketing operations.",
+      "a/b testing": "A/B testing methodology is core to marketing operations for optimising emails, landing pages, and campaign performance through data-driven experimentation.",
+      "lead scoring": "Lead scoring models help sales and marketing align on prospect quality. Operations professionals design and maintain scoring logic within marketing automation platforms.",
+      "b2b marketing": "Business-to-business marketing expertise signals understanding of long sales cycles, account hierarchies, and enterprise buying committees.",
+      "marketing automation": "The core discipline of using software to automate repetitive marketing tasks. Mastery of platforms like Marketo, HubSpot, Pardot, or Eloqua is essential.",
+      "data analytics": "The practice of analysing raw data to draw conclusions. Marketing Ops roles increasingly demand analytics skills for measuring ROI and optimising campaigns.",
+      "project management": "Coordinating marketing initiatives across teams requires project management discipline. Tools like Asana, Jira, Monday.com, and methodologies like Agile are commonly requested.",
+      "customer journey": "Understanding and mapping the customer journey is critical for marketing automation, lead nurturing, and lifecycle marketing strategy.",
+      "lifecycle marketing": "Managing marketing touchpoints across the full customer lifecycle&mdash;from acquisition through retention and advocacy.",
+      "email marketing": "Email remains a cornerstone channel. Skills include template design, segmentation, deliverability, A/B testing, and compliance.",
+      "sales operations": "Sales Ops focuses on process optimisation, tooling, compensation, and analytics for sales teams&mdash;heavily overlapping with RevOps.",
+      "revenue operations": "RevOps unifies sales, marketing, and customer success operations. The fastest-growing operations discipline, focused on end-to-end revenue process.",
+      "revops": "Shorthand for Revenue Operations. See Revenue Operations above.",
+      "martech": "Short for Marketing Technology. Encompasses the entire marketing stack&mdash;from automation to analytics to content management.",
+      "dbt": "Data Build Tool for transforming data in warehouses. Increasingly used in marketing data stacks for modelling and documentation.",
+      "fivetran": "A managed data pipeline service. Marketing Ops teams use Fivetran to centralise data from SaaS tools into warehouses.",
+      "snowflake": "A cloud data platform popular for marketing data warehousing. Snowflake skills are requested for handling large-scale marketing datasets.",
+      "bigquery": "Google&rsquo;s serverless data warehouse. BigQuery skills are valued in organisations using the Google Cloud marketing stack.",
+      "hightouch": "A Reverse ETL platform that syncs data from warehouses to business tools. Hightouch skills bridge analytics and operational systems.",
+      "census": "Another Reverse ETL platform for operational analytics. Census skills enable marketing teams to activate warehouse data in their daily tools.",
+      "zoominfo": "A B2B data enrichment and intelligence platform. ZoomInfo skills are sought for prospect data management, account targeting, and sales intelligence workflows.",
+      "gong": "An AI-powered revenue intelligence platform. Gong skills are valued for analysing sales conversations, identifying revenue risks, and coaching reps at scale.",
+      "claude": "Anthropic&rsquo;s AI assistant, increasingly used in marketing ops for content generation, data analysis, and workflow scripting. Skills with Claude signal AI literacy.",
+      "chatgpt": "OpenAI&rsquo;s conversational AI model. Marketing Ops professionals use ChatGPT for writing copy, analysing data, generating ideas, and automating routine tasks.",
+      "openai": "The organisation behind GPT and ChatGPT. Familiarity with OpenAI&rsquo;s API and models is becoming a differentiator for marketing automation and content workflows.",
+      "copilot": "Microsoft&rsquo;s AI coding assistant (and increasingly an AI agent across M365 apps). Copilot skills are relevant for improving productivity across the marketing stack.",
+      "gemini": "Google&rsquo;s multimodal AI model. Gemini familiarity is growing in marketing ops for data analysis, content generation, and working with Google&rsquo;s ecosystem.",
+      "clay": "An AI-powered data enrichment and outreach platform. Clay skills are in demand for automating prospect research, personalisation, and multi-channel sequences.",
+      "n8n": "An open-source workflow automation platform. n8n expertise is prized for building custom integrations and automating marketing processes without vendor lock-in.",
+      "gdpr": "The General Data Protection Regulation is foundational for marketing ops in Europe. GDPR knowledge is essential for compliant data handling, consent management, and privacy processes.",
+      "mixpanel": "A product analytics platform for tracking user behaviour. Mixpanel skills are valued in marketing ops roles that focus on conversion optimisation and product-led growth.",
+      "make": "A visual no-code automation platform (formerly Integromat). Make.com is increasingly used alongside Zapier for building complex multi-step marketing workflows.",
+      "make.com": "A visual no-code automation platform (formerly Integromat). Make.com is increasingly used alongside Zapier for building complex multi-step marketing workflows.",
+      "notion": "An all-in-one workspace for documentation, project management, and knowledge bases. Marketing ops teams use Notion for runbooks, processes, and collaboration.",
+    };
+
+    function getDescription(skillKey) {
+      // Try exact match, then try common variants
+      var desc = SKILL_DESCRIPTIONS[skillKey];
+      if (desc) return desc;
+      // Try stripped (no spaces)
+      var compact = skillKey.replace(/[\s\-]/g, "");
+      for (var k in SKILL_DESCRIPTIONS) {
+        if (k.replace(/[\s\-]/g, "") === compact) return SKILL_DESCRIPTIONS[k];
+      }
+      return null;
+    }
+
+    async function loadSkills() {
+      var container = document.getElementById("skillsList");
+      var statsBar = document.getElementById("statsBar");
+      try {
+        var r = await fetch(API_BASE + "/api/skills-in-demand");
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        var data = await r.json();
+        var skills = data.skills;
+        var totalJobs = data.total_jobs;
+
+        // Stats bar
+        statsBar.innerHTML =
+          '<div class="stat-box"><div class="stat-value">' + totalJobs + '</div><div class="stat-label">Jobs Analysed</div></div>' +
+          '<div class="stat-box"><div class="stat-value">' + skills.length + '</div><div class="stat-label">Unique Skills Found</div></div>' +
+          '<div class="stat-box"><div class="stat-value">' + (skills.length ? skills[0].percentage + "%" : "—") + '</div><div class="stat-label">Top Skill Frequency</div></div>';
+
+        if (!skills.length) {
+          container.innerHTML = '<div class="error-state"><p>No skills data available yet. Try refreshing after a job scan.</p></div>';
+          return;
+        }
+
+        var html = "";
+        skills.forEach(function(s, i) {
+          var desc = getDescription(s.skill_key);
+          if (!desc) {
+            // Generic fallback description
+            var nm = s.skill;
+            desc = nm + " is a skill frequently requested across Marketing Operations and Revenue Operations roles. Proficiency in " + nm + " can strengthen your profile for roles involving data analysis, automation, or system administration.";
+          }
+          html +=
+            '<div class="skill-card">' +
+              '<div class="skill-card-header">' +
+                '<div class="rank">#' + (i + 1) + '</div>' +
+                '<h2>' + esc(s.skill) + '</h2>' +
+                '<div class="pct-badge">' + s.percentage + '%</div>' +
+              '</div>' +
+              '<div class="skill-bar-wrap"><div class="skill-bar-fill" style="width:' + s.percentage + '%"></div></div>' +
+              '<p>' + desc + '</p>' +
+            '</div>';
+        });
+        container.innerHTML = html;
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div class="error-state"><p>Could not load skills data. Make sure the backend is running on port 8003.</p></div>';
+      }
+    }
+
+    function esc(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+    loadSkills();
+  </script>
+</body>
+</html>

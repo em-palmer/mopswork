@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Applications — MOpsWork</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --color-bg: #f8f9fc; --color-surface: #ffffff; --color-surface-hover: #f0f2f8;
+      --color-border: #e2e5ef; --color-text: #1a1a2e; --color-text-muted: #6b7280;
+      --color-accent: #7c3aed; --color-accent-glow: rgba(124,58,237,0.25);
+      --color-accent-2: #06b6d4; --color-accent-3: #f43f5e; --color-success: #10b981;
+      --radius: 12px; --radius-lg: 20px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font); background: var(--color-bg); color: var(--color-text);
+      line-height: 1.6; -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: var(--color-accent); text-decoration: none; }
+    .bg-grid {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .container { max-width: var(--max-width, 1400px); margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+    /* ── Nav ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0; border-bottom: 1px solid var(--color-border);
+    }
+    .logo {
+      font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--color-text-muted); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--color-text); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px; padding: 12px 28px;
+      border-radius: 100px; font-family: var(--font); font-size: 0.9rem; font-weight: 600;
+      border: none; cursor: pointer; transition: all 0.3s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-accent), #5a4bd4); color: #fff;
+      box-shadow: 0 4px 25px var(--color-accent-glow);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px var(--color-accent-glow); }
+    .btn-sm { padding: 8px 20px; font-size: 0.82rem; }
+    .btn-outline {
+      background: transparent; color: var(--color-accent);
+      border: 1px solid var(--color-accent); padding: 6px 16px; font-size: 0.78rem;
+    }
+    .btn-outline:hover { background: rgba(124,58,237,0.06); }
+
+    /* ── Page header ── */
+    .page-header { padding: 32px 0 20px; }
+    .page-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -1px; }
+    .page-header h1 .gradient-text {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .page-header p { color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 12px; }
+    .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* ── Kanban board ── */
+    .kanban-board {
+      display: flex;
+      gap: 16px;
+      padding-bottom: 32px;
+      overflow-x: auto;
+      min-height: calc(100vh - 260px);
+      scrollbar-width: thin;
+    }
+    .kanban-board::-webkit-scrollbar { height: 8px; }
+    .kanban-board::-webkit-scrollbar-track { background: var(--color-bg); border-radius: 4px; }
+    .kanban-board::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
+
+    .kanban-column {
+      flex: 0 0 280px;
+      min-width: 260px;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-surface-hover);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      max-height: calc(100vh - 260px);
+    }
+
+    .kanban-column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    .kanban-column-header .col-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .kanban-column-header .col-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .kanban-column-header .col-count {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      background: var(--color-surface);
+      padding: 1px 8px;
+      border-radius: 100px;
+      border: 1px solid var(--color-border);
+    }
+    .col-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .col-dot.applied { background: var(--color-success); }
+    .col-dot.interviewing { background: #2563eb; }
+    .col-dot.offer { background: var(--color-accent); }
+    .col-dot.withdrawn { background: #d97706; }
+    .col-dot.rejected { background: #dc2626; }
+    .col-dot.not_applicable { background: #9ca3af; }
+
+    .kanban-cards {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .kanban-cards.drag-over {
+      background: rgba(124, 58, 237, 0.04);
+      border-radius: 8px;
+    }
+
+    /* ── Kanban card ── */
+    .kanban-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      cursor: grab;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .kanban-card:hover {
+      border-color: rgba(124,58,237,0.25);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .kanban-card:active { cursor: grabbing; }
+    .kanban-card.dragging {
+      opacity: 0.4;
+      transform: rotate(1deg);
+    }
+    .kanban-card.hidden { display: none; }
+
+    .kc-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.3;
+      margin-bottom: 2px;
+    }
+    .kc-title a { color: var(--color-text); }
+    .kc-title a:hover { color: var(--color-accent); }
+    .kc-company { font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 6px; }
+    .kc-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      margin-bottom: 6px;
+    }
+    .kc-meta .label { font-weight: 600; color: var(--color-text); }
+    .kc-match {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+    .kc-date {
+      font-size: 0.68rem;
+      color: var(--color-text-muted);
+    }
+    .kc-skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin-top: 4px;
+    }
+    .kc-skill {
+      font-size: 0.62rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(108,92,231,0.06);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+    }
+    .kc-skill.matched {
+      background: rgba(16,185,129,0.1);
+      color: #059669;
+      border-color: rgba(16,185,129,0.2);
+    }
+    .kc-skill.gap {
+      background: rgba(253,121,168,0.06);
+      color: #db2777;
+      border-color: rgba(253,121,168,0.15);
+    }
+
+    .kc-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid var(--color-border);
+    }
+    .kc-source {
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Empty state ── */
+    .kanban-empty {
+      text-align: center; padding: 24px 16px;
+      color: var(--color-text-muted);
+      font-size: 0.8rem;
+    }
+    .kanban-empty a { color: var(--color-accent); font-weight: 600; }
+
+    footer { border-top: 1px solid var(--color-border); padding: 32px 0; margin-top: 48px; }
+    footer p { color: var(--color-text-muted); font-size: 0.85rem; text-align: center; }
+
+    @media (max-width: 768px) {
+      .nav-links li:not(.nav-cta-li) { display: none; }
+      .kanban-column { flex: 0 0 260px; min-width: 220px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+
+  <div class="container">
+    <nav>
+      <a href="/" class="logo" style="text-decoration: none;">MOpsWork</a>
+      <ul class="nav-links">
+        <li><a href="/jobs.html">Job Scanner</a></li>
+        <li><a href="/applications.html" style="color: var(--color-accent);">Applications</a></li>
+        <li><a href="/scoring.html">Scoring</a></li>
+        <li><a href="/skills-in-demand.html">Skills</a></li>
+        <li><a href="/samples.html">Samples</a></li>
+        <li><a href="/aboutme.html">About Me</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <h1><span class="gradient-text">Applications</span></h1>
+      <p>Track every application. Drag any card between columns to update its status.</p>
+      <div class="header-actions">
+        <button class="btn btn-sm btn-outline" onclick="window.__exportCSV()">
+          Download All as CSV
+        </button>
+        <a href="/jobs.html" class="btn btn-sm btn-primary" style="text-decoration:none;">
+          Find More Jobs
+        </a>
+      </div>
+    </div>
+
+    <div id="boardContainer">
+      <div style="text-align:center; padding:48px; color:var(--color-text-muted);">Loading applications...</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <footer>
+      <p>&copy; 2026 MOpsWork. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8003";
+
+    const COLUMNS = [
+      { key: "applied", label: "Applied", dot: "applied" },
+      { key: "interviewing", label: "Interviewing", dot: "interviewing" },
+      { key: "offer", label: "Offer", dot: "offer" },
+      { key: "not_applicable", label: "N/A", dot: "not_applicable" },
+      { key: "withdrawn", label: "Withdrawn", dot: "withdrawn" },
+      { key: "rejected", label: "Rejected", dot: "rejected" },
+    ];
+
+    let allJobs = [];
+    let dragSource = null;
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      const d = document.createElement("div");
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const diff = Date.now() - d.getTime();
+      const days = Math.floor(diff / 86400000);
+      if (days === 0) return "Today";
+      if (days === 1) return "Yesterday";
+      if (days < 7) return days + "d ago";
+      return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    }
+
+    function fullDate(dateStr) {
+      if (!dateStr) return "";
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    }
+
+    function createCardHTML(job) {
+      const skills = job.key_skills || [];
+      const matched = job.matched_skills || [];
+      const gap = (job.skills_gap || []).slice(0, 5);
+
+      return `
+        <div class="kanban-card" draggable="true" data-job-id="${escapeHtml(job.job_id)}" data-status="${escapeHtml(job.status || "applied")}">
+          <div class="kc-title"><a href="${escapeHtml(job.url)}" target="_blank" rel="noopener">${escapeHtml(job.title)}</a></div>
+          <div class="kc-company">${escapeHtml(job.company)}</div>
+          <div class="kc-meta">
+            <span><span class="label">Location:</span> ${escapeHtml(job.location)}</span>
+            <span>${escapeHtml(job.work_type || "—")}</span>
+            <span>${escapeHtml(job.salary || "—")}</span>
+          </div>
+          ${skills.length > 0 ? `
+          <div class="kc-skills">
+            ${skills.map(s => `<span class="kc-skill ${matched.includes(s) ? "matched" : gap.includes(s) ? "gap" : ""}">${escapeHtml(s)}</span>`).join("")}
+          </div>` : ""}
+          <div class="kc-footer">
+            <span class="kc-match">${job.match_score}%</span>
+            <span class="kc-date">${job.date_applied ? fullDate(job.date_applied) : ""}</span>
+          </div>
+        </div>`;
+    }
+
+    function buildBoard(jobs) {
+      const container = document.getElementById("boardContainer");
+
+      if (jobs.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:48px; color:var(--color-text-muted);">
+            No applications tracked yet.
+            <br><br>
+            <a href="/jobs.html">Go to the Job Scanner</a> and set a status on jobs you're interested in.
+          </div>`;
+        return;
+      }
+
+      // Group jobs by status
+      const groups = {};
+      COLUMNS.forEach(c => { groups[c.key] = []; });
+      jobs.forEach(j => {
+        const s = j.status || "applied";
+        if (groups[s]) groups[s].push(j);
+        else groups.applied.push(j);
+      });
+
+      let html = `<div class="kanban-board">`;
+
+      COLUMNS.forEach(col => {
+        const items = groups[col.key] || [];
+
+        html += `
+          <div class="kanban-column" data-column="${col.key}">
+            <div class="kanban-column-header">
+              <div class="col-left">
+                <span class="col-dot ${col.dot}"></span>
+                <span class="col-title">${col.label}</span>
+              </div>
+              <span class="col-count">${items.length}</span>
+            </div>
+            <div class="kanban-cards" data-column="${col.key}">`;
+
+        if (items.length === 0) {
+          html += `<div class="kanban-empty">Drop cards here</div>`;
+        } else {
+          items.forEach(j => {
+            html += createCardHTML(j);
+          });
+        }
+
+        html += `
+            </div>
+          </div>`;
+      });
+
+      html += `</div>`;
+      container.innerHTML = html;
+      attachDragHandlers();
+    }
+
+    // ── Drag & Drop ──
+    function attachDragHandlers() {
+      // Card drag start
+      document.querySelectorAll(".kanban-card[draggable]").forEach(card => {
+        card.addEventListener("dragstart", onDragStart);
+        card.addEventListener("dragend", onDragEnd);
+      });
+
+      // Column drop zones
+      document.querySelectorAll(".kanban-cards").forEach(zone => {
+        zone.addEventListener("dragover", onDragOver);
+        zone.addEventListener("dragleave", onDragLeave);
+        zone.addEventListener("drop", onDrop);
+      });
+    }
+
+    function onDragStart(e) {
+      dragSource = this;
+      this.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", this.dataset.jobId);
+    }
+
+    function onDragEnd() {
+      this.classList.remove("dragging");
+      document.querySelectorAll(".kanban-cards").forEach(z => z.classList.remove("drag-over"));
+      dragSource = null;
+    }
+
+    function onDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      this.classList.add("drag-over");
+    }
+
+    function onDragLeave() {
+      this.classList.remove("drag-over");
+    }
+
+    function onDrop(e) {
+      e.preventDefault();
+      this.classList.remove("drag-over");
+      const jobId = e.dataTransfer.getData("text/plain");
+      const newStatus = this.dataset.column;
+      if (!jobId || !newStatus) return;
+
+      // If dropped in same column, do nothing
+      const sourceCard = document.querySelector(`.kanban-card[data-job-id="${jobId}"]`);
+      if (!sourceCard) return;
+
+      const oldStatus = sourceCard.dataset.status;
+      if (oldStatus === newStatus) return;
+
+      // Call API to update
+      updateJobStatus(jobId, newStatus, sourceCard);
+    }
+
+    async function updateJobStatus(jobId, newStatus, sourceCard) {
+      try {
+        const formData = new FormData();
+        formData.append("status", newStatus);
+        const resp = await fetch(`${API_BASE}/api/applications/${jobId}`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!resp.ok) throw new Error("API error");
+        // Reload the whole board to reflect the change
+        loadApplications();
+      } catch (err) {
+        console.error("Failed to update status:", err);
+        // Reload anyway to reset UI
+        loadApplications();
+      }
+    }
+
+    async function loadApplications() {
+      const container = document.getElementById("boardContainer");
+      try {
+        const resp = await fetch(`${API_BASE}/api/applications`);
+        if (!resp.ok) throw new Error("Failed to load");
+        allJobs = await resp.json();
+        buildBoard(allJobs);
+      } catch (err) {
+        console.error("Failed to load applications:", err);
+        container.innerHTML = `
+          <div style="text-align:center; padding:48px; color:var(--color-text-muted);">
+            Could not load applications. Make sure the backend is running on port 8003.
+          </div>`;
+      }
+    }
+
+    window.__exportCSV = function() {
+      window.open(`${API_BASE}/api/applications/export`, "_blank");
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", loadApplications);
+    } else {
+      loadApplications();
+    }
+  </script>
+</body>
+</html>

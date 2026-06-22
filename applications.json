@@ -1,0 +1,716 @@
+{
+  "4b6b7e0405f0": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T14:06:53.692310",
+    "date_updated": "2026-06-17T14:06:53.692310",
+    "notes": ""
+  },
+  "6f3803ea8112": {
+    "status": "applied",
+    "date_applied": "2026-06-17T14:07:00.135539",
+    "date_updated": "2026-06-17T14:07:00.135539",
+    "notes": ""
+  },
+  "a94d3c18c15c": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:07:37.449161",
+    "date_updated": "2026-06-17T14:07:37.449161",
+    "notes": ""
+  },
+  "742ab29b21b4": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:07:40.562940",
+    "date_updated": "2026-06-17T14:07:40.562940",
+    "notes": ""
+  },
+  "6a043e73db2a": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T14:31:11.623921",
+    "date_updated": "2026-06-17T14:31:11.623921",
+    "notes": ""
+  },
+  "3bf7687d65c0": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:31:13.242663",
+    "date_updated": "2026-06-17T14:31:13.242663",
+    "notes": ""
+  },
+  "e7181f9ad2cb": {
+    "status": "applied",
+    "date_applied": "2026-06-17T14:31:15.909090",
+    "date_updated": "2026-06-17T14:31:15.909090",
+    "notes": ""
+  },
+  "d09db4e1caf4": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T14:31:18.325635",
+    "date_updated": "2026-06-17T14:31:18.325635",
+    "notes": ""
+  },
+  "4d887aced719": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:31:20.760153",
+    "date_updated": "2026-06-17T14:31:20.760153",
+    "notes": ""
+  },
+  "6b726a85a301": {
+    "status": "withdrawn",
+    "date_applied": "2026-06-17T14:31:26.288010",
+    "date_updated": "2026-06-17T14:31:26.288010",
+    "notes": ""
+  },
+  "62f1dcb7b570": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:31:30.485860",
+    "date_updated": "2026-06-17T14:31:30.485860",
+    "notes": ""
+  },
+  "59b111b73c9c": {
+    "status": "applied",
+    "date_applied": "2026-06-17T14:31:32.765517",
+    "date_updated": "2026-06-17T14:31:32.765517",
+    "notes": ""
+  },
+  "73729448f616": {
+    "status": "applied",
+    "date_applied": "2026-06-17T14:31:34.226875",
+    "date_updated": "2026-06-17T14:31:34.226875",
+    "notes": ""
+  },
+  "92ab5be37ba2": {
+    "status": "applied",
+    "date_applied": "2026-06-17T14:31:35.749193",
+    "date_updated": "2026-06-17T14:31:38.899486",
+    "notes": ""
+  },
+  "cbb9098c578d": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T14:32:40.110048",
+    "date_updated": "2026-06-17T14:32:40.110048",
+    "notes": ""
+  },
+  "e62ae703472d": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:32:56.704702",
+    "date_updated": "2026-06-17T14:32:56.704702",
+    "notes": ""
+  },
+  "dc0ccd5bfa90": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:33:01.915671",
+    "date_updated": "2026-06-17T14:33:01.915671",
+    "notes": ""
+  },
+  "95030fcabf28": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:33:08.846121",
+    "date_updated": "2026-06-17T14:33:08.846121",
+    "notes": ""
+  },
+  "479dd04296dc": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:33:15.524652",
+    "date_updated": "2026-06-17T14:33:15.524652",
+    "notes": ""
+  },
+  "b2f14d3998b5": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:33:28.499534",
+    "date_updated": "2026-06-17T14:33:28.499534",
+    "notes": ""
+  },
+  "d817bd2c31ce": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T14:33:31.414553",
+    "date_updated": "2026-06-17T14:33:31.414553",
+    "notes": ""
+  },
+  "9bec951032f7": {
+    "status": "applied",
+    "date_applied": "2026-06-17T14:33:40.204646",
+    "date_updated": "2026-06-17T14:33:40.204646",
+    "notes": ""
+  },
+  "2e9de26f3011": {
+    "status": "applied",
+    "date_applied": "2026-06-17T14:33:43.680324",
+    "date_updated": "2026-06-17T14:33:43.680324",
+    "notes": ""
+  },
+  "61694614459c": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:33:49.756243",
+    "date_updated": "2026-06-17T14:33:49.756243",
+    "notes": ""
+  },
+  "6f9305c14108": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T14:33:52.674142",
+    "date_updated": "2026-06-17T14:33:52.674142",
+    "notes": ""
+  },
+  "e4618ad2badc": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T15:41:39.254332",
+    "date_updated": "2026-06-17T15:41:39.254332",
+    "notes": ""
+  },
+  "579ee6ad0372": {
+    "status": "applied",
+    "date_applied": "2026-06-17T15:41:43.394128",
+    "date_updated": "2026-06-17T15:41:43.394128",
+    "notes": ""
+  },
+  "c1a95756a986": {
+    "status": "applied",
+    "date_applied": "2026-06-17T15:41:52.887190",
+    "date_updated": "2026-06-17T15:41:52.887190",
+    "notes": ""
+  },
+  "5190eacb9be3": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T15:42:18.531222",
+    "date_updated": "2026-06-17T15:42:18.531222",
+    "notes": ""
+  },
+  "10027415b590": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T15:42:24.199093",
+    "date_updated": "2026-06-17T15:42:24.199093",
+    "notes": ""
+  },
+  "879524f5335d": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T15:42:26.335669",
+    "date_updated": "2026-06-17T15:42:26.335669",
+    "notes": ""
+  },
+  "cd3d65bc090a": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T15:43:23.394154",
+    "date_updated": "2026-06-17T15:43:23.394154",
+    "notes": ""
+  },
+  "c6610643c587": {
+    "status": "applied",
+    "date_applied": "2026-06-17T16:20:43.252814",
+    "date_updated": "2026-06-17T16:20:43.252814",
+    "notes": ""
+  },
+  "0e0b59b34eeb": {
+    "status": "applied",
+    "date_applied": "2026-06-17T16:20:45.691813",
+    "date_updated": "2026-06-17T16:20:45.691813",
+    "notes": ""
+  },
+  "84654890fa3e": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:21:09.897674",
+    "date_updated": "2026-06-17T16:21:09.897674",
+    "notes": ""
+  },
+  "fbb48beff730": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:21:12.446839",
+    "date_updated": "2026-06-17T16:21:12.446839",
+    "notes": ""
+  },
+  "9084f7a9e581": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:21:16.096287",
+    "date_updated": "2026-06-17T16:21:16.096287",
+    "notes": ""
+  },
+  "03f05ec4eda4": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:21:26.602205",
+    "date_updated": "2026-06-17T16:21:26.602205",
+    "notes": ""
+  },
+  "981be2640b9e": {
+    "status": "applied",
+    "date_applied": "2026-06-17T16:21:45.492458",
+    "date_updated": "2026-06-17T16:21:45.492458",
+    "notes": ""
+  },
+  "3e1e68cf25e8": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:22:11.291523",
+    "date_updated": "2026-06-17T16:22:11.291523",
+    "notes": ""
+  },
+  "a1266117307a": {
+    "status": "applied",
+    "date_applied": "2026-06-17T16:22:13.719190",
+    "date_updated": "2026-06-17T16:22:13.719190",
+    "notes": ""
+  },
+  "9f9107793b0e": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:22:19.042959",
+    "date_updated": "2026-06-17T16:22:19.042959",
+    "notes": ""
+  },
+  "12ff1ef66f33": {
+    "status": "withdrawn",
+    "date_applied": "2026-06-17T16:22:22.055585",
+    "date_updated": "2026-06-17T16:22:22.055585",
+    "notes": ""
+  },
+  "e21fb1968471": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:22:26.106145",
+    "date_updated": "2026-06-17T16:22:26.106145",
+    "notes": ""
+  },
+  "768cb6b2307f": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:22:29.105186",
+    "date_updated": "2026-06-17T16:22:29.105186",
+    "notes": ""
+  },
+  "04e155011a16": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T16:22:38.428460",
+    "date_updated": "2026-06-17T16:22:38.428460",
+    "notes": ""
+  },
+  "32a0ee86a8d1": {
+    "status": "applied",
+    "date_applied": "2026-06-17T16:22:42.073582",
+    "date_updated": "2026-06-17T16:22:42.073582",
+    "notes": ""
+  },
+  "42dad5783fb7": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:22:47.967065",
+    "date_updated": "2026-06-17T16:22:47.967065",
+    "notes": ""
+  },
+  "52810c29b98c": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T16:22:55.883530",
+    "date_updated": "2026-06-17T16:22:55.883530",
+    "notes": ""
+  },
+  "646dd32ac319": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T16:22:58.064604",
+    "date_updated": "2026-06-17T16:22:58.064604",
+    "notes": ""
+  },
+  "f711b02f8068": {
+    "status": "applied",
+    "date_applied": "2026-06-17T16:23:03.574596",
+    "date_updated": "2026-06-17T16:23:03.574596",
+    "notes": ""
+  },
+  "dd5b1ed7cb50": {
+    "status": "applied",
+    "date_applied": "2026-06-17T16:23:06.542210",
+    "date_updated": "2026-06-17T16:23:06.542210",
+    "notes": ""
+  },
+  "9bf89e6e89c1": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T16:23:12.884851",
+    "date_updated": "2026-06-17T16:23:12.884851",
+    "notes": ""
+  },
+  "451b6e868007": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:28:49.767318",
+    "date_updated": "2026-06-17T16:28:49.767318",
+    "notes": ""
+  },
+  "324c379d41ab": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:31:39.125791",
+    "date_updated": "2026-06-17T16:31:39.125791",
+    "notes": ""
+  },
+  "3c5f5f3e6a27": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:31:41.054559",
+    "date_updated": "2026-06-17T16:31:41.054559",
+    "notes": ""
+  },
+  "c77434b3fa2c": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:31:45.333224",
+    "date_updated": "2026-06-17T16:31:45.333224",
+    "notes": ""
+  },
+  "cd8ed3ddb583": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:31:48.729883",
+    "date_updated": "2026-06-17T16:31:48.729883",
+    "notes": ""
+  },
+  "0c2eb62f44c9": {
+    "status": "withdrawn",
+    "date_applied": "2026-06-17T16:36:05.520481",
+    "date_updated": "2026-06-17T16:36:05.520481",
+    "notes": ""
+  },
+  "2d5b294e6b82": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T16:36:15.679042",
+    "date_updated": "2026-06-17T16:36:15.679042",
+    "notes": ""
+  },
+  "8a0b79d8c09a": {
+    "status": "applied",
+    "date_applied": "2026-06-17T16:36:18.656057",
+    "date_updated": "2026-06-17T16:36:18.656057",
+    "notes": ""
+  },
+  "a7dce4baec65": {
+    "status": "rejected",
+    "date_applied": "2026-06-17T16:36:20.655991",
+    "date_updated": "2026-06-17T16:36:22.682403",
+    "notes": ""
+  },
+  "029ba713ba71": {
+    "status": "applied",
+    "date_applied": "2026-06-17T16:36:55.746804",
+    "date_updated": "2026-06-17T16:36:55.746804",
+    "notes": ""
+  },
+  "1bdebfefb239": {
+    "status": "applied",
+    "date_applied": "2026-06-17T16:37:17.693476",
+    "date_updated": "2026-06-17T16:37:17.693476",
+    "notes": ""
+  },
+  "3b426f936414": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:37:51.119820",
+    "date_updated": "2026-06-17T16:37:51.119820",
+    "notes": ""
+  },
+  "8ec9a473195e": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:37:53.399525",
+    "date_updated": "2026-06-17T16:37:53.399525",
+    "notes": ""
+  },
+  "01aadadf5b74": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:37:56.856052",
+    "date_updated": "2026-06-17T16:37:56.856052",
+    "notes": ""
+  },
+  "9cb678c4bf49": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:38:00.080307",
+    "date_updated": "2026-06-17T16:38:00.080307",
+    "notes": ""
+  },
+  "6e7a5acd850e": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:38:05.050109",
+    "date_updated": "2026-06-17T16:38:05.050109",
+    "notes": ""
+  },
+  "a7297d42e1bd": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:38:11.541337",
+    "date_updated": "2026-06-17T16:38:11.541337",
+    "notes": ""
+  },
+  "d028fdcfa2cc": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:38:13.813717",
+    "date_updated": "2026-06-17T16:38:13.813717",
+    "notes": ""
+  },
+  "3fbd8033f167": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:38:15.687540",
+    "date_updated": "2026-06-17T16:38:15.687540",
+    "notes": ""
+  },
+  "126dcbb2fded": {
+    "status": "withdrawn",
+    "date_applied": "2026-06-17T16:40:01.114801",
+    "date_updated": "2026-06-17T16:40:01.114801",
+    "notes": ""
+  },
+  "b1185ad491db": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T16:40:09.426871",
+    "date_updated": "2026-06-17T16:40:09.426871",
+    "notes": ""
+  },
+  "002a50e78e9e": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T17:45:11.388771",
+    "date_updated": "2026-06-17T17:45:11.388771",
+    "notes": ""
+  },
+  "43d065a0e142": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T17:46:31.709757",
+    "date_updated": "2026-06-17T17:46:31.709757",
+    "notes": ""
+  },
+  "7f02c084794e": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T17:46:33.806987",
+    "date_updated": "2026-06-17T17:46:33.806987",
+    "notes": ""
+  },
+  "a331b4da4e15": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T17:46:35.391694",
+    "date_updated": "2026-06-17T17:46:35.391694",
+    "notes": ""
+  },
+  "c0f35a8ee217": {
+    "status": "withdrawn",
+    "date_applied": "2026-06-17T17:59:14.740382",
+    "date_updated": "2026-06-18T09:49:48.497236",
+    "notes": ""
+  },
+  "30e82d138bdd": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-17T18:00:26.251974",
+    "date_updated": "2026-06-17T18:00:26.251974",
+    "notes": ""
+  },
+  "05886e23196d": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T08:50:02.123434",
+    "date_updated": "2026-06-18T08:50:02.123434",
+    "notes": ""
+  },
+  "35c53a054902": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T08:50:09.046525",
+    "date_updated": "2026-06-18T08:50:09.046525",
+    "notes": ""
+  },
+  "f96acf3c4f6e": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T08:50:12.716958",
+    "date_updated": "2026-06-18T08:50:14.576132",
+    "notes": ""
+  },
+  "a8f06f792e53": {
+    "status": "applied",
+    "date_applied": "2026-06-18T08:50:24.752412",
+    "date_updated": "2026-06-18T08:50:24.752412",
+    "notes": ""
+  },
+  "e39fcb558f7d": {
+    "status": "rejected",
+    "date_applied": "2026-06-18T08:50:29.046731",
+    "date_updated": "2026-06-18T08:50:29.046731",
+    "notes": ""
+  },
+  "fd76575a13b6": {
+    "status": "applied",
+    "date_applied": "2026-06-18T08:50:38.656858",
+    "date_updated": "2026-06-18T08:50:38.656858",
+    "notes": ""
+  },
+  "edb18bd0afdd": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T09:12:34.050106",
+    "date_updated": "2026-06-18T09:12:34.050106",
+    "notes": ""
+  },
+  "5273b0e3fd0a": {
+    "status": "withdrawn",
+    "date_applied": "2026-06-18T09:12:38.016188",
+    "date_updated": "2026-06-18T09:12:38.016188",
+    "notes": ""
+  },
+  "0363a88f5846": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T09:40:03.172257",
+    "date_updated": "2026-06-18T09:40:03.172257",
+    "notes": ""
+  },
+  "c34eeaf64235": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T09:40:08.077561",
+    "date_updated": "2026-06-18T09:40:08.077561",
+    "notes": ""
+  },
+  "9f6c71e0433d": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T09:51:41.387901",
+    "date_updated": "2026-06-18T09:51:41.387901",
+    "notes": ""
+  },
+  "becb1f984c05": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T09:51:59.866677",
+    "date_updated": "2026-06-18T09:51:59.866677",
+    "notes": ""
+  },
+  "275ee1dfdd84": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T11:22:35.759072",
+    "date_updated": "2026-06-18T11:22:35.759072",
+    "notes": ""
+  },
+  "553518c3b1ef": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T11:22:39.686114",
+    "date_updated": "2026-06-18T11:22:39.686114",
+    "notes": ""
+  },
+  "c15bfb1e50ab": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T11:22:41.586574",
+    "date_updated": "2026-06-18T11:22:41.586574",
+    "notes": ""
+  },
+  "719f1a2fab09": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T11:22:45.264257",
+    "date_updated": "2026-06-18T11:22:45.264257",
+    "notes": ""
+  },
+  "62083f457bb7": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T13:12:09.207673",
+    "date_updated": "2026-06-18T13:12:09.207673",
+    "notes": ""
+  },
+  "1505e21d0906": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T13:12:11.089321",
+    "date_updated": "2026-06-18T13:12:11.089321",
+    "notes": ""
+  },
+  "0a3bd8f7d36c": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-18T13:12:12.699434",
+    "date_updated": "2026-06-18T13:12:12.699434",
+    "notes": ""
+  },
+  "4095aa14eb24": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-19T09:38:09.158871",
+    "date_updated": "2026-06-19T09:38:09.158871",
+    "notes": ""
+  },
+  "c1cd5bd599ce": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-19T09:38:22.932673",
+    "date_updated": "2026-06-19T09:38:22.932673",
+    "notes": ""
+  },
+  "343768a586cb": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-19T09:38:24.878117",
+    "date_updated": "2026-06-19T09:38:24.878117",
+    "notes": ""
+  },
+  "e90a0dcd76b0": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-19T09:38:27.254709",
+    "date_updated": "2026-06-19T09:38:27.254709",
+    "notes": ""
+  },
+  "e3b64312145c": {
+    "status": "applied",
+    "date_applied": "2026-06-19T09:50:08.694791",
+    "date_updated": "2026-06-19T09:50:08.694791",
+    "notes": ""
+  },
+  "a749d06fe46f": {
+    "status": "applied",
+    "date_applied": "2026-06-19T10:10:16.806993",
+    "date_updated": "2026-06-19T10:10:16.806993",
+    "notes": ""
+  },
+  "b460b5e1f79e": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-19T17:08:57.383976",
+    "date_updated": "2026-06-19T17:08:57.383976",
+    "notes": ""
+  },
+  "7a4a67db7901": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:33.258180",
+    "date_updated": "2026-06-22T11:50:33.258180",
+    "notes": ""
+  },
+  "a9517aa4e04a": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:38.122891",
+    "date_updated": "2026-06-22T11:50:38.122891",
+    "notes": ""
+  },
+  "23199e393491": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:40.017730",
+    "date_updated": "2026-06-22T11:50:40.017730",
+    "notes": ""
+  },
+  "b2f5a9c55e55": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:42.013006",
+    "date_updated": "2026-06-22T11:50:42.013006",
+    "notes": ""
+  },
+  "5e9a4f95d2d1": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:44.360518",
+    "date_updated": "2026-06-22T11:50:44.360518",
+    "notes": ""
+  },
+  "6c6b9fb55709": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:47.413140",
+    "date_updated": "2026-06-22T11:50:47.413140",
+    "notes": ""
+  },
+  "1cee70835e44": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:50.101664",
+    "date_updated": "2026-06-22T11:50:50.101664",
+    "notes": ""
+  },
+  "7a510c8a3879": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:52.741367",
+    "date_updated": "2026-06-22T11:50:52.741367",
+    "notes": ""
+  },
+  "bf8c7bd07017": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:54.625232",
+    "date_updated": "2026-06-22T11:50:54.625232",
+    "notes": ""
+  },
+  "71494eb68c20": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:56.387417",
+    "date_updated": "2026-06-22T11:50:56.387417",
+    "notes": ""
+  },
+  "b9a08f2eeb1f": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:50:59.016845",
+    "date_updated": "2026-06-22T11:50:59.016845",
+    "notes": ""
+  },
+  "09d124bb5bc7": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T11:51:00.569793",
+    "date_updated": "2026-06-22T11:51:00.569793",
+    "notes": ""
+  },
+  "45938f9acba4": {
+    "status": "not_applicable",
+    "date_applied": "2026-06-22T12:44:11.626667",
+    "date_updated": "2026-06-22T12:44:11.626667",
+    "notes": ""
+  }
+}
