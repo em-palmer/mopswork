@@ -6,7 +6,7 @@
 (function () {
   "use strict";
 
-  const API_BASE = "http://localhost:8003";
+  var API_BASE = window.API_BASE || "http://localhost:8003";
   const STATUSES = ["", "applied", "interviewing", "offer", "withdrawn", "rejected", "not_applicable"];
 
   let allJobs = [];
