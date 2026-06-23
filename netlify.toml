@@ -1,0 +1,6 @@
+[build]
+  command = "echo 'Static site - no build step'"
+  publish = "."
+
+[build.environment]
+  NPM_FLAGS = "--no-optional"
