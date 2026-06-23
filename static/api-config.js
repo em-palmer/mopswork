@@ -4,6 +4,6 @@
   if (host === "localhost" || host === "127.0.0.1") {
     window.API_BASE = "http://localhost:8003";
   } else {
-    window.API_BASE = "https://mopswork-api.onrender.com";
+    window.API_BASE = "https://mopswork.onrender.com";
   }
 })();
