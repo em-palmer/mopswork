@@ -8,6 +8,7 @@ import json
 import logging
 import html as html_mod
 import urllib.parse
+from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
@@ -599,6 +600,7 @@ GREENHOUSE_BOARDS = {
     "Trustpilot": "trustpilot",
     "Twilio": "twilio",
     "Typeform": "typeform",
+    "Lucanet": "lucanetgroup",
     "Wise": "wise",
     "Workato": "workato",
     "Cloudflare": "cloudflare",
@@ -661,6 +663,7 @@ LEVER_BOARDS = {
     "Webflow": "webflow",
     "Canva": "canva",
     "Loom": "loom",
+    "Frontify": "frontify",
 }
 
 
@@ -714,7 +717,6 @@ ASHBY_BOARDS = {
     "DeepL": "deepl",
     "Demandbase": "demandbase",
     "Front": "frontcareers",
-    "Frontify": "frontify",
     "HiBob": "bob",
     "IRIS Software Group": "irissoftwaregroup",
     "Iterable": "iterable",
@@ -929,9 +931,60 @@ def scrape_company_careers() -> list[JobPosting]:
     return jobs
 
 
+WATCHLIST_JOBS = [
+    {
+        "title": "Marketing Analyst",
+        "company": "Lucanet",
+        "location": "United Kingdom",
+        "url": "https://www.linkedin.com/jobs/view/4464655756/",
+        "source": "LinkedIn",
+        "description": (
+            "Marketing Analyst at Lucanet. Marketing performance reporting, budgets, "
+            "dashboards, attribution, and RevOps partnership. United Kingdom."
+        ),
+        "work_type": "Hybrid",
+    },
+    {
+        "title": "Senior Demand Operations Manager",
+        "company": "Frontify",
+        "location": "London",
+        "url": "https://jobs.lever.co/frontify/f4fc69c7-47d6-4d78-ba92-8ed5d93af594/",
+        "source": "Lever",
+        "description": (
+            "Senior Demand Operations Manager at Frontify, London hybrid. Marketing "
+            "systems, ABM, attribution reporting, campaign operations, HubSpot and Salesforce."
+        ),
+        "work_type": "Hybrid",
+    },
+]
+
+
+def scrape_watchlist() -> list[JobPosting]:
+    """Always include named live roles Emma has flagged as active."""
+    now = datetime.now(timezone.utc).isoformat()
+    jobs: list[JobPosting] = []
+    for raw in WATCHLIST_JOBS:
+        company = raw["company"]
+        jobs.append(JobPosting(
+            title=raw["title"],
+            company=company,
+            location=raw["location"],
+            country="UK",
+            description=raw["description"],
+            url=raw["url"],
+            source=raw["source"],
+            posted_date=now,
+            work_type=raw.get("work_type") or "Hybrid",
+            company_url=target_company_url(company),
+        ))
+    logger.info(f"  Watchlist: {len(jobs)} flagged roles")
+    return jobs
+
+
 # ── Master function ──
 
 ALL_NEW_SOURCES = [
+    ("Watchlist", scrape_watchlist),
     # ATS boards with reliable JSON APIs
     ("GreenhouseBoards", scrape_greenhouse_boards),
     ("LeverBoards", scrape_lever_boards),

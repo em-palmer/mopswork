@@ -53,7 +53,7 @@ KEYWORDS_SCORE_20 = [
     "marketing operations", "martech", "marketing technology", "marketing tech",
     "gtm engineer", "go-to-market engineer",
     "marketing data", "data analytics", "marketing analytics",
-    "marketing systems", "demand generation", "growth marketing",
+    "marketing systems", "demand generation", "demand operations", "growth marketing",
     "marketing platform", "email marketing",
     "data ops", "data operations", "reporting",
 ]
@@ -102,6 +102,7 @@ TITLE_REQUIRED_TERMS = [
     "martech",
     "marketing technology",
     "marketing program & enablement",
+    "demand operations",
     "marketing analytics",
     "lead",
     "data analyst",
