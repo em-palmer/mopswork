@@ -18,6 +18,7 @@ from backend.filters import JobPosting
 from backend.config import (
     ADZUNA_APP_ID, ADZUNA_API_KEY, JOOBLE_API_KEY, CAREERJET_API_KEY,
     target_company_url, TARGET_COMPANY_SITES,
+    SCRAPINGDOG_API_KEY, SCRAPINGBEE_API_KEY, JSEARCH_API_KEY, SCRAPFLY_API_KEY,
 )
 from backend.new_scrapers import scrape_new_sources, GREENHOUSE_BOARDS, LEVER_BOARDS, ASHBY_BOARDS
 
@@ -990,6 +991,221 @@ def scrape_indeed_uk() -> list[JobPosting]:
                     break
 
     logger.info(f"     IndeedUK: {len(jobs)} jobs found")
+    if not jobs:
+        jobs = _scrape_indeed_via_unblocker()
+        logger.info(f"     IndeedUK via unblocker: {len(jobs)} jobs found")
+    return jobs
+
+
+def _fetch_unblocked(url: str) -> Optional[str]:
+    """Fetch a blocked board page through Scrapfly or ScrapingBee."""
+    if SCRAPFLY_API_KEY:
+        try:
+            r = httpx.get(
+                "https://api.scrapfly.io/scrape",
+                params={
+                    "key": SCRAPFLY_API_KEY,
+                    "url": url,
+                    "render_js": "true",
+                    "unblocker": "true",
+                    "country": "gb",
+                },
+                timeout=90.0,
+            )
+            if r.status_code == 200:
+                data = r.json()
+                html = ((data.get("result") or {}).get("content")) or ""
+                if html:
+                    return html
+            logger.warning(f"Scrapfly returned {r.status_code} for {url[:80]}")
+        except Exception as e:
+            logger.warning(f"Scrapfly error: {e}")
+    if SCRAPINGBEE_API_KEY:
+        try:
+            r = httpx.get(
+                "https://app.scrapingbee.com/api/v1/",
+                params={
+                    "api_key": SCRAPINGBEE_API_KEY,
+                    "url": url,
+                    "render_js": "true",
+                    "country_code": "gb",
+                },
+                timeout=60.0,
+            )
+            if r.status_code == 200 and r.text:
+                return r.text
+            logger.warning(f"ScrapingBee returned {r.status_code} for {url[:80]}")
+        except Exception as e:
+            logger.warning(f"ScrapingBee error: {e}")
+    return None
+
+
+def _parse_indeed_html(html: str, seen: set) -> list[JobPosting]:
+    jobs: list[JobPosting] = []
+    soup = BeautifulSoup(html, "html.parser")
+    cards = soup.select("div.job_seen_beacon, div.cardOutline, div[data-testid^='slider_item'], li.css-5lf99z")
+    for card in cards[:40]:
+        title_el = card.select_one("h2 a, a.jcs-JobTitle, a[data-jk]")
+        if not title_el:
+            continue
+        title = title_el.get_text(strip=True)
+        href = title_el.get("href", "")
+        if href.startswith("/"):
+            href = "https://uk.indeed.com" + href
+        company_el = card.select_one("[data-testid='company-name'], span.companyName")
+        company = company_el.get_text(strip=True) if company_el else "Unknown"
+        loc_el = card.select_one("[data-testid='text-location'], div.companyLocation")
+        location = loc_el.get_text(strip=True) if loc_el else "UK"
+        date_el = card.select_one("span.date, [data-testid='myJobsStateDate']")
+        posted = date_el.get_text(strip=True) if date_el else None
+        key = (title.lower(), company.lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        jobs.append(JobPosting(
+            title=title, company=company,
+            location=location, country="UK",
+            description="", url=href, source="Indeed",
+            posted_date=posted,
+            work_type=detect_work_type_from_text(title, "", location),
+            company_url=target_company_url(company),
+        ))
+    return jobs
+
+
+def _scrape_indeed_via_unblocker() -> list[JobPosting]:
+    if not SCRAPINGBEE_API_KEY and not SCRAPFLY_API_KEY:
+        logger.info("Indeed unblocker skipped (set SCRAPINGBEE_API_KEY or SCRAPFLY_API_KEY)")
+        return []
+    jobs: list[JobPosting] = []
+    seen: set = set()
+    for q in BOARD_QUERIES[:3]:
+        url = (
+            "https://uk.indeed.com/jobs"
+            f"?q={urllib.parse.quote_plus(q)}&l=United+Kingdom&fromage=7&sort=date"
+        )
+        html = _fetch_unblocked(url)
+        if not html:
+            continue
+        jobs.extend(_parse_indeed_html(html, seen))
+    return jobs
+
+
+def scrape_scrapingdog() -> list[JobPosting]:
+    """ScrapingDog LinkedIn job search — last week, UK. Needs SCRAPINGDOG_API_KEY."""
+    jobs: list[JobPosting] = []
+    if not SCRAPINGDOG_API_KEY:
+        logger.info("ScrapingDog: no API key, skipping")
+        return jobs
+    seen = set()
+    with httpx.Client(timeout=40.0) as client:
+        for q in BOARD_QUERIES[:4]:
+            try:
+                resp = client.get(
+                    "https://api.scrapingdog.com/jobs",
+                    params={
+                        "api_key": SCRAPINGDOG_API_KEY,
+                        "field": q,
+                        "location": "United Kingdom",
+                        "geoid": "101165590",
+                        "sort_by": "week",
+                        "page": "1",
+                    },
+                )
+                if resp.status_code != 200:
+                    logger.warning(f"ScrapingDog returned {resp.status_code} for q={q}")
+                    continue
+                data = resp.json()
+                rows = data if isinstance(data, list) else data.get("jobs") or data.get("results") or []
+                for raw in rows:
+                    title = (raw.get("job_title") or raw.get("title") or "").strip()
+                    company = raw.get("company_name") or raw.get("company") or "Unknown"
+                    if not title:
+                        continue
+                    key = (title.lower(), str(company).lower())
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    location = raw.get("job_location") or raw.get("location") or "United Kingdom"
+                    href = raw.get("job_link") or raw.get("url") or raw.get("linkedin_url") or ""
+                    posted = raw.get("job_posted") or raw.get("listed_at") or raw.get("date")
+                    jobs.append(JobPosting(
+                        title=title, company=str(company),
+                        location=str(location), country="UK",
+                        description=str(raw.get("job_description") or raw.get("description") or "")[:2000],
+                        url=href, source="ScrapingDog",
+                        posted_date=str(posted) if posted else None,
+                        work_type=detect_work_type_from_text(title, "", str(location)),
+                        company_url=target_company_url(str(company)),
+                    ))
+                logger.info(f"  ScrapingDog q={q}: {len(rows)} jobs")
+            except Exception as e:
+                logger.warning(f"ScrapingDog error for q={q}: {e}")
+    logger.info(f"  ScrapingDog total: {len(jobs)}")
+    return jobs
+
+
+def scrape_jsearch() -> list[JobPosting]:
+    """JSearch via OpenWeb Ninja — Google Jobs (Indeed, LinkedIn, and others)."""
+    jobs: list[JobPosting] = []
+    if not JSEARCH_API_KEY:
+        logger.info("JSearch: no API key, skipping")
+        return jobs
+    seen = set()
+    with httpx.Client(timeout=90.0) as client:
+        for q in BOARD_QUERIES[:3]:
+            try:
+                resp = client.get(
+                    "https://api.openwebninja.com/jsearch/search-v2",
+                    headers={
+                        "X-API-Key": JSEARCH_API_KEY,
+                        "x-api-key": JSEARCH_API_KEY,
+                    },
+                    params={
+                        "query": f"{q} in United Kingdom",
+                        "date_posted": "week",
+                        "country": "gb",
+                        "language": "en",
+                    },
+                )
+                if resp.status_code != 200:
+                    logger.warning(f"JSearch returned {resp.status_code} for q={q}: {resp.text[:200]}")
+                    continue
+                payload = resp.json() or {}
+                data = payload.get("data")
+                if isinstance(data, dict):
+                    rows = data.get("jobs") or data.get("results") or []
+                elif isinstance(data, list):
+                    rows = data
+                else:
+                    rows = payload.get("jobs") or payload.get("results") or []
+                for raw in rows:
+                    if not isinstance(raw, dict):
+                        continue
+                    title = (raw.get("job_title") or raw.get("title") or "").strip()
+                    company = raw.get("employer_name") or raw.get("company") or "Unknown"
+                    if not title:
+                        continue
+                    key = (title.lower(), str(company).lower())
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    loc = raw.get("job_location") or raw.get("job_city") or raw.get("job_country") or "United Kingdom"
+                    href = raw.get("job_apply_link") or raw.get("job_google_link") or raw.get("job_min_url") or ""
+                    posted = raw.get("job_posted_at_datetime_utc") or raw.get("job_posted_at_timestamp")
+                    jobs.append(JobPosting(
+                        title=title, company=str(company),
+                        location=str(loc), country="UK",
+                        description=str(raw.get("job_description") or "")[:2000],
+                        url=href, source="JSearch",
+                        posted_date=str(posted) if posted else None,
+                        work_type=detect_work_type_from_text(title, str(raw.get("job_is_remote") or ""), str(loc)),
+                        company_url=raw.get("employer_website") or target_company_url(str(company)),
+                    ))
+                logger.info(f"  JSearch q={q}: {len(rows)} jobs")
+            except Exception as e:
+                logger.warning(f"JSearch error for q={q}: {e}")
+    logger.info(f"  JSearch total: {len(jobs)}")
     return jobs
 
 
@@ -1271,6 +1487,8 @@ def scrape_all() -> list[JobPosting]:
         ("RevOpsRoles", scrape_revops_roles),
         ("IndeedUK", scrape_indeed_uk),
         ("CVLibrary", scrape_cv_library),
+        ("ScrapingDog", scrape_scrapingdog),
+        ("JSearch", scrape_jsearch),
         # ── Other APIs ──
         ("Arbeitnow", scrape_arbeitnow),
         ("Jooble", scrape_jooble),

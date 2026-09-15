@@ -207,6 +207,10 @@ try:
     JOOBLE_API_KEY = os.getenv("JOOBLE_API_KEY", "")
     CAREERJET_API_KEY = os.getenv("CAREERJET_API_KEY", "")
     APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN", "")
+    SCRAPINGDOG_API_KEY = os.getenv("SCRAPINGDOG_API_KEY", "")
+    SCRAPINGBEE_API_KEY = os.getenv("SCRAPINGBEE_API_KEY", "")
+    JSEARCH_API_KEY = os.getenv("JSEARCH_API_KEY", "")
+    SCRAPFLY_API_KEY = os.getenv("SCRAPFLY_API_KEY", "")
 except ImportError:
     ADZUNA_APP_ID = ""
     ADZUNA_API_KEY = ""
@@ -214,6 +218,10 @@ except ImportError:
     JOOBLE_API_KEY = ""
     CAREERJET_API_KEY = ""
     APIFY_API_TOKEN = ""
+    SCRAPINGDOG_API_KEY = ""
+    SCRAPINGBEE_API_KEY = ""
+    JSEARCH_API_KEY = ""
+    SCRAPFLY_API_KEY = ""
 
 # How often to re-scan in minutes
 SCAN_INTERVAL_MINUTES = 60
