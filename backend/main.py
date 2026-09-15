@@ -168,6 +168,43 @@ def _make_job_id(job: JobPosting) -> str:
     return hashlib.md5(key.encode()).hexdigest()[:12]
 
 
+def _norm_fp(title: str, company: str) -> str:
+    return f"{(title or '').strip().lower()}|{(company or '').strip().lower()}"
+
+
+def _url_key(url: str) -> str:
+    return (url or "").split("?")[0].strip().lower()
+
+
+def _job_from_id(job_id: str) -> Optional[JobPosting]:
+    for job in cached_jobs:
+        if _make_job_id(job) == job_id:
+            return job
+    return None
+
+
+def _hidden_from_scanner(job: JobPosting) -> bool:
+    """Hide roles that already have a status, especially N/A, even if the job id changed."""
+    job_id = _make_job_id(job)
+    fp = _norm_fp(job.title, job.company)
+    urlk = _url_key(job.url)
+    direct = applications.get(job_id) or {}
+    if direct.get("status"):
+        return True
+    for rec in applications.values():
+        status = rec.get("status") or ""
+        if not status:
+            continue
+        if _norm_fp(rec.get("title", ""), rec.get("company", "")) == fp:
+            return True
+        if urlk and _url_key(rec.get("url", "")) == urlk:
+            return True
+        if status == "not_applicable" and rec.get("title") and rec.get("company"):
+            if _norm_fp(rec["title"], rec["company"]) == fp:
+                return True
+    return False
+
+
 def _job_to_dict(job: JobPosting) -> dict:
     job_id = _make_job_id(job)
 
@@ -269,7 +306,7 @@ def get_jobs(
     salary_max: Optional[float] = Query(None),
     status: Optional[str] = Query(None),
     posted_since: Optional[str] = Query("1w"),
-    exclude_na: bool = Query(False),
+    exclude_na: bool = Query(True),
     limit: int = Query(100, ge=1, le=500),
     cv_compare: bool = Query(False),
 ):
@@ -315,11 +352,9 @@ def get_jobs(
                 continue
             elif posted_since == "older" and delta.total_seconds() <= 604800:
                 continue
-        # Exclude N/A
-        if exclude_na:
-            job_id = _make_job_id(j)
-            if applications.get(job_id, {}).get("status") == "not_applicable":
-                continue
+        # Hide jobs already actioned (N/A and any other status)
+        if exclude_na and _hidden_from_scanner(j):
+            continue
         if status:
             job_id = _make_job_id(j)
             app_data = applications.get(job_id, {})
@@ -405,20 +440,49 @@ def export_applications():
 
 
 @app.post("/api/applications/{job_id}")
-def update_application(job_id: str, status: str = Form(...), notes: str = Form("")):
+def update_application(
+    job_id: str,
+    status: str = Form(...),
+    notes: str = Form(""),
+    title: str = Form(""),
+    company: str = Form(""),
+    url: str = Form(""),
+):
     """Update application status for a job."""
     now = datetime.now().isoformat()
+    job = _job_from_id(job_id)
+    if not title and job:
+        title = job.title
+    if not company and job:
+        company = job.company
+    if not url and job:
+        url = job.url
+
+    if not status:
+        applications.pop(job_id, None)
+        _save_applications()
+        return {"status": "ok", "job_id": job_id, "application": None}
+
     if job_id in applications:
         applications[job_id]["status"] = status
         applications[job_id]["date_updated"] = now
         if notes:
             applications[job_id]["notes"] = notes
+        if title:
+            applications[job_id]["title"] = title
+        if company:
+            applications[job_id]["company"] = company
+        if url:
+            applications[job_id]["url"] = url
     else:
         applications[job_id] = {
             "status": status,
             "date_applied": now,
             "date_updated": now,
             "notes": notes,
+            "title": title,
+            "company": company,
+            "url": url,
         }
     _save_applications()
     return {"status": "ok", "job_id": job_id, "application": applications[job_id]}

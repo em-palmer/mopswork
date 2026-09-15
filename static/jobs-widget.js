@@ -148,8 +148,23 @@
   }
 
   async function updateStatus(jobId, newStatus) {
+    var job = null;
+    for (var i = 0; i < allJobs.length; i++) {
+      if (allJobs[i].job_id === jobId) { job = allJobs[i]; break; }
+    }
     const fd = new URLSearchParams();
     fd.set("status", newStatus);
+    if (job) {
+      fd.set("title", job.title || "");
+      fd.set("company", job.company || "");
+      fd.set("url", job.url || "");
+    }
+    if (newStatus) rememberDismissed(job, jobId);
+    else forgetDismissed(job, jobId);
+    if (newStatus) {
+      allJobs = allJobs.filter(function(j) { return j.job_id !== jobId; });
+      renderTable();
+    }
     try {
       await fetch(API_BASE + "/api/applications/" + encodeURIComponent(jobId), {
         method: "POST",
@@ -157,6 +172,69 @@
         body: fd.toString(),
       });
     } catch (err) { console.error("Status update failed:", err); }
+    fetchJobs();
+  }
+
+  var DISMISSED_KEY = "mopswork_dismissed_jobs";
+
+  function loadDismissed() {
+    try {
+      var raw = localStorage.getItem(DISMISSED_KEY);
+      if (!raw) return { ids: [], fps: [], urls: [] };
+      var d = JSON.parse(raw);
+      return {
+        ids: d.ids || [],
+        fps: d.fps || [],
+        urls: d.urls || [],
+      };
+    } catch (e) {
+      return { ids: [], fps: [], urls: [] };
+    }
+  }
+
+  function saveDismissed(d) {
+    try { localStorage.setItem(DISMISSED_KEY, JSON.stringify(d)); } catch (e) {}
+  }
+
+  function jobFp(job) {
+    if (!job) return "";
+    return String(job.title || "").trim().toLowerCase() + "|" + String(job.company || "").trim().toLowerCase();
+  }
+
+  function jobUrlKey(job) {
+    if (!job || !job.url) return "";
+    return String(job.url).split("?")[0].trim().toLowerCase();
+  }
+
+  function rememberDismissed(job, jobId) {
+    var d = loadDismissed();
+    if (jobId && d.ids.indexOf(jobId) === -1) d.ids.push(jobId);
+    var fp = jobFp(job);
+    if (fp && fp !== "|" && d.fps.indexOf(fp) === -1) d.fps.push(fp);
+    var u = jobUrlKey(job);
+    if (u && d.urls.indexOf(u) === -1) d.urls.push(u);
+    saveDismissed(d);
+  }
+
+  function forgetDismissed(job, jobId) {
+    var d = loadDismissed();
+    d.ids = d.ids.filter(function(id) { return id !== jobId; });
+    var fp = jobFp(job);
+    if (fp) d.fps = d.fps.filter(function(x) { return x !== fp; });
+    var u = jobUrlKey(job);
+    if (u) d.urls = d.urls.filter(function(x) { return x !== u; });
+    saveDismissed(d);
+  }
+
+  function isDismissed(job) {
+    if (!job) return false;
+    if (job.status) return true;
+    var d = loadDismissed();
+    if (job.job_id && d.ids.indexOf(job.job_id) !== -1) return true;
+    if (d.fps.indexOf(jobFp(job)) !== -1) return true;
+    var u = jobUrlKey(job);
+    if (u && d.urls.indexOf(u) !== -1) return true;
+    return false;
   }
 
   async function fetchJobs() {
@@ -179,7 +257,7 @@
 
       const r = await fetch(API_BASE + "/api/jobs?" + p);
       if (!r.ok) throw new Error("HTTP " + r.status);
-      allJobs = await r.json();
+      allJobs = (await r.json()).filter(function(job) { return !isDismissed(job); });
       renderTable();
     } catch (err) {
       console.error("Fetch failed:", err);
@@ -268,6 +346,7 @@
     if (!tbodyEl) return;
     // Update the match counter from the current filtered results
     var jobs = allJobs.filter(function(job) {
+      if (isDismissed(job)) return false;
       return jobMatchesPostedSince(job, filters.posted_since);
     });
     if (countEl) countEl.textContent = jobs.length.toLocaleString();
