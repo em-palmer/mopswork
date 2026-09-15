@@ -159,7 +159,7 @@
       fd.set("company", job.company || "");
       fd.set("url", job.url || "");
     }
-    if (newStatus) rememberDismissed(job, jobId);
+    if (newStatus) rememberDismissed(job, jobId, newStatus);
     else forgetDismissed(job, jobId);
     if (newStatus) {
       allJobs = allJobs.filter(function(j) { return j.job_id !== jobId; });
@@ -186,6 +186,7 @@
         ids: d.ids || [],
         fps: d.fps || [],
         urls: d.urls || [],
+        recs: d.recs || [],
       };
     } catch (e) {
       return { ids: [], fps: [], urls: [] };
@@ -206,13 +207,29 @@
     return String(job.url).split("?")[0].trim().toLowerCase();
   }
 
-  function rememberDismissed(job, jobId) {
+  function rememberDismissed(job, jobId, status) {
     var d = loadDismissed();
     if (jobId && d.ids.indexOf(jobId) === -1) d.ids.push(jobId);
     var fp = jobFp(job);
     if (fp && fp !== "|" && d.fps.indexOf(fp) === -1) d.fps.push(fp);
     var u = jobUrlKey(job);
     if (u && d.urls.indexOf(u) === -1) d.urls.push(u);
+    var rec = {
+      id: jobId || "",
+      status: status || "not_applicable",
+      title: job ? (job.title || "") : "",
+      company: job ? (job.company || "") : "",
+      url: job ? (job.url || "") : "",
+    };
+    var found = false;
+    for (var i = 0; i < d.recs.length; i++) {
+      if (d.recs[i].id === rec.id || (rec.title && d.recs[i].title === rec.title && d.recs[i].company === rec.company)) {
+        d.recs[i] = rec;
+        found = true;
+        break;
+      }
+    }
+    if (!found && rec.id) d.recs.push(rec);
     saveDismissed(d);
   }
 
@@ -223,7 +240,38 @@
     if (fp) d.fps = d.fps.filter(function(x) { return x !== fp; });
     var u = jobUrlKey(job);
     if (u) d.urls = d.urls.filter(function(x) { return x !== u; });
+    d.recs = d.recs.filter(function(rec) {
+      if (rec.id && rec.id === jobId) return false;
+      if (job && rec.title === (job.title || "") && rec.company === (job.company || "")) return false;
+      return true;
+    });
     saveDismissed(d);
+  }
+
+  async function replayDismissedToServer() {
+    var d = loadDismissed();
+    var recs = (d.recs && d.recs.length) ? d.recs.slice() : [];
+    if (!recs.length) {
+      recs = (d.ids || []).map(function(id) {
+        return { id: id, status: "not_applicable", title: "", company: "", url: "" };
+      });
+    }
+    for (var i = 0; i < recs.length; i++) {
+      var rec = recs[i];
+      if (!rec.id || !rec.status) continue;
+      var fd = new URLSearchParams();
+      fd.set("status", rec.status);
+      if (rec.title) fd.set("title", rec.title);
+      if (rec.company) fd.set("company", rec.company);
+      if (rec.url) fd.set("url", rec.url);
+      try {
+        await fetch(API_BASE + "/api/applications/" + encodeURIComponent(rec.id), {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: fd.toString(),
+        });
+      } catch (e) {}
+    }
   }
 
   function isDismissed(job) {
@@ -528,7 +576,9 @@
     }
 
     window.__jobsTriggerScrape = triggerScrape;
-    fetchSources(); fetchProfile(); fetchStats(); fetchJobs();
+    replayDismissedToServer().then(function() {
+      fetchSources(); fetchProfile(); fetchStats(); fetchJobs();
+    });
   }
 
   function debounce(fn, ms) { var t; return function(){var a=arguments,self=this;clearTimeout(t);t=setTimeout(function(){fn.apply(self,a);},ms);}; }

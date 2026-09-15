@@ -388,20 +388,50 @@ def get_sources():
     return {"sources": sources}
 
 
+def _application_row(job_id: str, app_data: dict, jobs_by_id: dict) -> dict:
+    job = jobs_by_id.get(job_id)
+    if job:
+        d = _job_to_dict(job)
+    else:
+        d = {
+            "title": app_data.get("title") or "(removed from current scan)",
+            "company": app_data.get("company") or "",
+            "location": "",
+            "country": "UK",
+            "description": "",
+            "url": app_data.get("url") or "",
+            "source": "",
+            "salary": None,
+            "posted_date": None,
+            "work_type": None,
+            "company_url": None,
+            "hiring_manager": None,
+            "key_skills": [],
+            "matched_skills": [],
+            "skills_gap": [],
+            "salary_lower": None,
+            "salary_upper": None,
+            "match_score": 0.0,
+            "match_reasons": [],
+            "score_detail": {},
+            "job_id": job_id,
+        }
+    d["status"] = app_data.get("status")
+    d["date_applied"] = app_data.get("date_applied")
+    d["date_updated"] = app_data.get("date_updated")
+    d["notes"] = app_data.get("notes", "")
+    return d
+
+
 @app.get("/api/applications")
 def get_applications():
-    """Return all tracked applications with full job data."""
+    """Return all tracked applications, including roles no longer in the live scrape."""
+    jobs_by_id = {_make_job_id(j): j for j in cached_jobs}
     results = []
-    for job in cached_jobs:
-        job_id = _make_job_id(job)
-        app_data = applications.get(job_id)
-        if app_data:
-            d = _job_to_dict(job)
-            d["status"] = app_data["status"]
-            d["date_applied"] = app_data.get("date_applied")
-            d["date_updated"] = app_data.get("date_updated")
-            d["notes"] = app_data.get("notes", "")
-            results.append(d)
+    for job_id, app_data in applications.items():
+        if not app_data or not app_data.get("status"):
+            continue
+        results.append(_application_row(job_id, app_data, jobs_by_id))
     return results
 
 
@@ -416,20 +446,21 @@ def export_applications():
         "URL", "Company URL", "Key Skills", "Notes"
     ])
 
-    for job in cached_jobs:
-        job_id = _make_job_id(job)
-        app_data = applications.get(job_id)
-        if app_data:
-            writer.writerow([
-                app_data.get("status", ""),
-                app_data.get("date_applied", ""),
-                app_data.get("date_updated", ""),
-                job.title, job.company, job.location,
-                job.work_type or "", job.salary or "", job.source,
-                job.match_score, job.url, job.company_url or "",
-                ", ".join(job.key_skills),
-                app_data.get("notes", ""),
-            ])
+    jobs_by_id = {_make_job_id(j): j for j in cached_jobs}
+    for job_id, app_data in applications.items():
+        if not app_data or not app_data.get("status"):
+            continue
+        row = _application_row(job_id, app_data, jobs_by_id)
+        writer.writerow([
+            row.get("status", ""),
+            row.get("date_applied", ""),
+            row.get("date_updated", ""),
+            row.get("title", ""), row.get("company", ""), row.get("location", ""),
+            row.get("work_type") or "", row.get("salary") or "", row.get("source", ""),
+            row.get("match_score", ""), row.get("url", ""), row.get("company_url") or "",
+            ", ".join(row.get("key_skills") or []),
+            row.get("notes", ""),
+        ])
 
     output.seek(0)
     return StreamingResponse(
