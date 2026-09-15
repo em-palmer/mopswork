@@ -431,6 +431,10 @@ def get_applications():
     for job_id, app_data in applications.items():
         if not app_data or not app_data.get("status"):
             continue
+        job = jobs_by_id.get(job_id)
+        title = (app_data.get("title") or "").strip()
+        if not job and not title:
+            continue
         results.append(_application_row(job_id, app_data, jobs_by_id))
     return results
 
@@ -449,6 +453,8 @@ def export_applications():
     jobs_by_id = {_make_job_id(j): j for j in cached_jobs}
     for job_id, app_data in applications.items():
         if not app_data or not app_data.get("status"):
+            continue
+        if not jobs_by_id.get(job_id) and not (app_data.get("title") or "").strip():
             continue
         row = _application_row(job_id, app_data, jobs_by_id)
         writer.writerow([

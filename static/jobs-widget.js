@@ -180,7 +180,7 @@
   function loadDismissed() {
     try {
       var raw = localStorage.getItem(DISMISSED_KEY);
-      if (!raw) return { ids: [], fps: [], urls: [] };
+      if (!raw) return { ids: [], fps: [], urls: [], recs: [] };
       var d = JSON.parse(raw);
       return {
         ids: d.ids || [],
@@ -189,7 +189,7 @@
         recs: d.recs || [],
       };
     } catch (e) {
-      return { ids: [], fps: [], urls: [] };
+      return { ids: [], fps: [], urls: [], recs: [] };
     }
   }
 
@@ -250,25 +250,47 @@
 
   async function replayDismissedToServer() {
     var d = loadDismissed();
-    var recs = (d.recs && d.recs.length) ? d.recs.slice() : [];
-    if (!recs.length) {
-      recs = (d.ids || []).map(function(id) {
-        return { id: id, status: "not_applicable", title: "", company: "", url: "" };
-      });
-    }
-    for (var i = 0; i < recs.length; i++) {
-      var rec = recs[i];
-      if (!rec.id || !rec.status) continue;
+    var jobs = [];
+    try {
+      var params = new URLSearchParams({ limit: "200", exclude_na: "false", posted_since: "1w" });
+      var r = await fetch(API_BASE + "/api/jobs?" + params);
+      if (r.ok) jobs = await r.json();
+    } catch (e) {}
+    var recById = {};
+    (d.recs || []).forEach(function(rec) { if (rec && rec.id) recById[rec.id] = rec; });
+    var posted = {};
+    for (var i = 0; i < jobs.length; i++) {
+      var job = jobs[i];
+      if (!job || !job.job_id || job.status) continue;
+      if (!isDismissed(job)) continue;
+      var rec = recById[job.job_id] || {};
       var fd = new URLSearchParams();
-      fd.set("status", rec.status);
-      if (rec.title) fd.set("title", rec.title);
-      if (rec.company) fd.set("company", rec.company);
-      if (rec.url) fd.set("url", rec.url);
+      fd.set("status", rec.status || "not_applicable");
+      fd.set("title", job.title || "");
+      fd.set("company", job.company || "");
+      fd.set("url", job.url || "");
+      posted[job.job_id] = true;
       try {
-        await fetch(API_BASE + "/api/applications/" + encodeURIComponent(rec.id), {
+        await fetch(API_BASE + "/api/applications/" + encodeURIComponent(job.job_id), {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: fd.toString(),
+        });
+      } catch (e) {}
+    }
+    for (var j = 0; j < (d.recs || []).length; j++) {
+      var rec2 = d.recs[j];
+      if (!rec2 || !rec2.id || !rec2.status || !rec2.title || posted[rec2.id]) continue;
+      var fd2 = new URLSearchParams();
+      fd2.set("status", rec2.status);
+      fd2.set("title", rec2.title);
+      if (rec2.company) fd2.set("company", rec2.company);
+      if (rec2.url) fd2.set("url", rec2.url);
+      try {
+        await fetch(API_BASE + "/api/applications/" + encodeURIComponent(rec2.id), {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: fd2.toString(),
         });
       } catch (e) {}
     }
