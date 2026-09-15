@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 
 from backend.filters import JobPosting
 from backend.new_scrapers import scrape_new_sources
+from backend.config import ADZUNA_APP_ID, ADZUNA_API_KEY, JOOBLE_API_KEY, CAREERJET_API_KEY, target_company_url
 
 logger = logging.getLogger(__name__)
 
@@ -59,14 +60,355 @@ def detect_work_type_from_text(title: str, description: str, location: str) -> s
     return "On-site"
 
 
-# ---------- Adzuna API (UK) — DISABLED: free trial exhausted ----------
-# import urllib.parse
-# def scrape_adzuna() -> list[JobPosting]:
-#     logger.info("Adzuna: trial exhausted, skipping")
-#     return []
+# ---------- Source 1: Adzuna API (UK) ----------
+
+def scrape_adzuna() -> list[JobPosting]:
+    jobs: list[JobPosting] = []
+    app_id = ADZUNA_APP_ID
+    api_key = ADZUNA_API_KEY
+    if not app_id or not api_key:
+        logger.info("Adzuna: no API keys configured, skipping")
+        return jobs
+
+    queries = [
+        "marketing+operations", "revenue+operations", "revops", "marketing+automation",
+        "martech", "marketing+analytics", "data+operations", "gtm+engineer",
+        "revenue+ai", "business+automation", "marketing+data+analyst",
+    ]
+
+    with httpx.Client(timeout=20.0) as client:
+        for q in queries:
+            try:
+                url = (
+                    f"https://api.adzuna.com/v1/api/jobs/gb/search/1"
+                    f"?app_id={app_id}&app_key={api_key}"
+                    f"&what={q}&results_per_page=50&content-type=application/json"
+                    f"&full_time=1&permanent=1&sort_by=date"
+                )
+                resp = client.get(url, headers={"Accept": "application/json"})
+                if resp.status_code != 200:
+                    logger.warning(f"Adzuna returned {resp.status_code} for q={q}")
+                    continue
+                data = resp.json()
+                for raw in data.get("results", []):
+                    title = raw.get("title", "")
+                    if not title:
+                        continue
+                    company = raw.get("company", {}).get("display_name", "Unknown")
+                    location = raw.get("location", {}).get("display_name", "") or raw.get("location", "")
+                    description = raw.get("description", "")[:2000]
+                    salary_min = raw.get("salary_min")
+                    salary_max = raw.get("salary_max")
+                    salary_str = None
+                    if salary_min or salary_max:
+                        lo = int(salary_min) if salary_min else None
+                        hi = int(salary_max) if salary_max else None
+                        if lo and hi:
+                            salary_str = f"£{lo:,} - £{hi:,}"
+                        elif lo:
+                            salary_str = f"£{lo:,}"
+
+                    country = "UK"
+                    posted = raw.get("created")
+
+                    jobs.append(JobPosting(
+                        title=title, company=company,
+                        location=location, country=country,
+                        description=description, url=raw.get("redirect_url", ""),
+                        source="Adzuna", salary=salary_str,
+                        posted_date=posted,
+                        work_type=detect_work_type_from_text(title, description, location),
+                    ))
+                logger.info(f"  Adzuna q={q}: found {len(data.get('results', []))} jobs")
+            except Exception as e:
+                logger.warning(f"Adzuna error for q={q}: {e}")
+
+    return jobs
 
 
-# ---------- Source 2: We Work Remotely ----------
+# ---------- Source 2: Arbeitnow (free, no auth, Europe/remote) ----------
+
+def scrape_arbeitnow() -> list[JobPosting]:
+    jobs: list[JobPosting] = []
+    try:
+        resp = httpx.get(
+            "https://arbeitnow.com/api/job-board-api",
+            params={"visa_sponsorship": "false"},
+            headers={"Accept": "application/json"},
+            timeout=20,
+        )
+        if resp.status_code != 200:
+            logger.warning(f"Arbeitnow returned {resp.status_code}")
+            return jobs
+        data = resp.json()
+        for raw in data.get("data", []):
+            title = raw.get("title", "")
+            if not title:
+                continue
+            company = raw.get("company_name", "Unknown")
+            location = raw.get("location", "Remote") or "Remote"
+            description = raw.get("description", "")[:2000]
+            tags = " ".join(raw.get("tags", []))
+            combined_text = f"{title} {description} {tags}".lower()
+            # Only keep roles relevant to marketing/revenue ops
+            relevant_kw = ["marketing", "revenue", "revops", "operations", "gtm",
+                           "martech", "analytics", "data", "automation", "growth"]
+            if not any(kw in combined_text for kw in relevant_kw):
+                continue
+
+            country = ""
+            loc_lower = location.lower()
+            if any(c in loc_lower for c in ["uk", "london", "england", "united kingdom", "britain"]):
+                country = "UK"
+            elif "remote" in loc_lower or "anywhere" in loc_lower:
+                country = ""
+            else:
+                country = "Worldwide"
+
+            salary = raw.get("salary", "")
+            if isinstance(salary, (int, float)):
+                salary = f"£{int(salary):,}" if salary else None
+
+            jobs.append(JobPosting(
+                title=title, company=company,
+                location=location, country=country,
+                description=description, url=raw.get("url", ""),
+                source="Arbeitnow", salary=str(salary) if salary else None,
+                posted_date=raw.get("created_at", ""),
+                work_type="Remote" if raw.get("remote") else detect_work_type_from_text(title, description, location),
+            ))
+        logger.info(f"  Arbeitnow: {len(jobs)} jobs found")
+    except Exception as e:
+        logger.warning(f"Arbeitnow error: {e}")
+    return jobs
+
+
+# ---------- Source 3: Jooble API (free key, UK jobs) ----------
+
+def scrape_jooble() -> list[JobPosting]:
+    jobs: list[JobPosting] = []
+    api_key = JOOBLE_API_KEY
+    if not api_key:
+        logger.info("Jooble: no API key configured, skipping")
+        return jobs
+
+    queries = [
+        "marketing operations", "revenue operations", "revops", "marketing automation",
+        "martech", "marketing analytics", "data operations", "gtm engineer",
+        "business automation", "marketing data analyst", "agentops",
+    ]
+
+    with httpx.Client(timeout=20.0) as client:
+        for q in queries:
+            try:
+                resp = client.post(
+                    f"https://jooble.org/api/{api_key}",
+                    json={"keywords": q, "location": "United Kingdom"},
+                    headers={"Accept": "application/json"},
+                )
+                if resp.status_code != 200:
+                    logger.warning(f"Jooble returned {resp.status_code} for q={q}")
+                    continue
+                data = resp.json()
+                for raw in data.get("jobs", [])[:50]:
+                    title = raw.get("title", "")
+                    if not title:
+                        continue
+                    company = raw.get("company", "Unknown")
+                    location = raw.get("location", "UK")
+                    snippet = raw.get("snippet", "")
+                    salary = raw.get("salary", "")
+                    if salary and "£" not in salary:
+                        salary = None
+
+                    jobs.append(JobPosting(
+                        title=title, company=company,
+                        location=location, country="UK",
+                        description=snippet[:2000], url=raw.get("link", ""),
+                        source="Jooble", salary=salary,
+                        posted_date=raw.get("updated", ""),
+                        work_type=detect_work_type_from_text(title, snippet, location),
+                    ))
+                logger.info(f"  Jooble q={q}: {len(data.get('jobs', []))} jobs found")
+            except Exception as e:
+                logger.warning(f"Jooble error for q={q}: {e}")
+
+    return jobs
+
+
+# ---------- Source 4: Careerjet API (free non-commercial, UK) ----------
+
+def scrape_careerjet() -> list[JobPosting]:
+    jobs: list[JobPosting] = []
+    api_key = CAREERJET_API_KEY
+    if not api_key:
+        logger.info("Careerjet: no API key configured, skipping")
+        return jobs
+
+    queries = [
+        "marketing operations", "revenue operations", "revops", "marketing automation",
+        "martech", "marketing analytics", "data operations", "gtm engineer",
+    ]
+
+    with httpx.Client(timeout=20.0) as client:
+        for q in queries:
+            try:
+                url = (
+                    f"https://search.api.careerjet.net/v4/query"
+                    f"?locale_code=en_GB&keywords={urllib.parse.quote(q)}"
+                    f"&affid={api_key}&user_ip=0.0.0.0"
+                    f"&user_agent={urllib.parse.quote(USER_AGENT)}"
+                    f"&pagesize=50&sort=date"
+                )
+                resp = client.get(url, headers={"Accept": "application/json"})
+                if resp.status_code != 200:
+                    logger.warning(f"Careerjet returned {resp.status_code} for q={q}")
+                    continue
+                data = resp.json()
+                if data.get("type") != "JOBS":
+                    continue
+                for raw in data.get("jobs", []):
+                    title = raw.get("title", "")
+                    if not title:
+                        continue
+                    company = raw.get("company", "Unknown")
+                    locations = raw.get("locations", "UK")
+                    salary = raw.get("salary", "")
+                    description = raw.get("description", "")[:2000]
+
+                    jobs.append(JobPosting(
+                        title=title, company=company,
+                        location=locations, country="UK",
+                        description=description, url=raw.get("url", ""),
+                        source="Careerjet", salary=salary if salary else None,
+                        posted_date=raw.get("date", ""),
+                        work_type=detect_work_type_from_text(title, description, locations),
+                    ))
+                logger.info(f"  Careerjet q={q}: {len(data.get('jobs', []))} jobs found")
+            except Exception as e:
+                logger.warning(f"Careerjet error for q={q}: {e}")
+
+    return jobs
+
+
+# ---------- Source 5: Improved LinkedIn Guest API with better reliability ----------
+
+def scrape_linkedin() -> list[JobPosting]:
+    jobs: list[JobPosting] = []
+    queries = [
+        "marketing operations", "revenue operations", "revops",
+        "marketing automation", "martech", "gtm engineer",
+        "marketing analytics", "data operations", "business automation",
+    ]
+    company_queries = [
+        "memoryBlue", "LexisNexis", "Exclaimer", "Poka", "Improvado",
+    ]
+
+    seen_urls = set()
+
+    with httpx.Client(timeout=25.0, follow_redirects=True) as client:
+        all_search_terms = queries + company_queries
+        for q in all_search_terms:
+            for start in range(0, 50, 25):
+                try:
+                    url = (
+                        "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
+                        f"?keywords={urllib.parse.quote(q)}"
+                        f"&location=United%20Kingdom"
+                        f"&f_WT=2,3"
+                        f"&start={start}"
+                    )
+                    resp = client.get(url, headers={
+                        "User-Agent": USER_AGENT,
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                        "Accept-Language": "en-GB,en;q=0.9",
+                        "Referer": "https://www.linkedin.com/jobs/",
+                        "Cache-Control": "no-cache",
+                    })
+                    if resp.status_code != 200:
+                        logger.warning(f"LinkedIn returned {resp.status_code} for q={q}, start={start}")
+                        continue
+
+                    soup = BeautifulSoup(resp.text, "lxml")
+                    cards_found = 0
+
+                    for card in soup.find_all("li"):
+                        link_el = card.find("a", href=True)
+                        if not link_el:
+                            continue
+                        href = link_el["href"]
+                        if not href.startswith("https://") or "/jobs/view/" not in href:
+                            continue
+                        if href in seen_urls:
+                            continue
+                        seen_urls.add(href)
+                        cards_found += 1
+
+                        full_text = card.get_text(" ", strip=True)
+                        title = link_el.get_text(strip=True)
+                        if not title or len(title) < 5:
+                            continue
+
+                        # Extract company
+                        company = "Unknown"
+                        for tag in card.find_all(["h4", "span", "p", "div"]):
+                            cls = " ".join(tag.get("class", [])) if tag.get("class") else ""
+                            if any(x in cls.lower() for x in ["company", "subtitle", "employer"]):
+                                company = tag.get_text(strip=True)
+                                break
+                        if company == "Unknown":
+                            parts = full_text.split("·")
+                            for part in parts:
+                                pt = part.strip()
+                                if pt and pt != title and len(pt) < 60 and not any(
+                                    c in pt.lower() for c in
+                                    ["hour", "day", "week", "month", "ago", "apply", "active",
+                                     "be an early", "actively hiring"]
+                                ):
+                                    company = pt
+                                    break
+
+                        # Location
+                        location = "UK"
+                        for tag in card.find_all(["span", "div", "p", "small"]):
+                            cls = " ".join(tag.get("class", [])) if tag.get("class") else ""
+                            if "location" in cls.lower():
+                                location = tag.get_text(strip=True)
+                                break
+                        if location == "UK":
+                            loc_match = re.search(r'·\s*(.+?)\s*·', full_text)
+                            if loc_match:
+                                candidate = loc_match.group(1).strip()
+                                if candidate and len(candidate) < 80 and "linkedin" not in candidate.lower():
+                                    location = candidate
+
+                        jobs.append(JobPosting(
+                            title=title, company=company,
+                            location=location, country="UK",
+                            description=full_text[:1000], url=href,
+                            source="LinkedIn",
+                            work_type=detect_work_type_from_text(title, full_text, location),
+                        ))
+
+                    logger.info(f"  LinkedIn q={q}, start={start}: {cards_found} cards")
+
+                except Exception as e:
+                    logger.warning(f"LinkedIn error for q={q}, start={start}: {e}")
+
+    # Deduplicate
+    seen = set()
+    unique = []
+    for j in jobs:
+        key = (j.title.lower(), j.company.lower())
+        if key not in seen:
+            seen.add(key)
+            unique.append(j)
+
+    logger.info(f"  LinkedIn total: {len(unique)} unique jobs")
+    return unique
+
+
+# ---------- Remaining sources ----------
 
 def scrape_we_work_remotely() -> list[JobPosting]:
     jobs: list[JobPosting] = []
@@ -110,7 +452,7 @@ def scrape_we_work_remotely() -> list[JobPosting]:
     return jobs
 
 
-# ---------- Source 3: Remote OK API ----------
+# ---------- Source 6: Remote OK API ----------
 
 def scrape_remote_ok() -> list[JobPosting]:
     jobs: list[JobPosting] = []
@@ -148,11 +490,11 @@ def scrape_remote_ok() -> list[JobPosting]:
     return jobs
 
 
-# ---------- Source 4: Jobicy API ----------
+# ---------- Source 7: Jobicy API ----------
 
 def scrape_jobicy() -> list[JobPosting]:
     jobs: list[JobPosting] = []
-    categories = ["marketing", "sales", "data-science"]
+    categories = ["marketing"]
     with httpx.Client(timeout=20.0) as client:
         for cat in categories:
             try:
@@ -186,7 +528,7 @@ def scrape_jobicy() -> list[JobPosting]:
     return jobs
 
 
-# ---------- Source 5: Google for Jobs (via SerpAPI or scrape) ----------
+# ---------- Source 8: Google for Jobs (via SerpAPI) ----------
 
 def scrape_google_jobs() -> list[JobPosting]:
     jobs: list[JobPosting] = []
@@ -251,7 +593,7 @@ def scrape_google_jobs() -> list[JobPosting]:
     return jobs
 
 
-# ---------- Source 6: RevOps Roles (SSR scrape) ----------
+# ---------- Source 9: RevOps Roles (SSR scrape) ----------
 
 def scrape_revops_roles() -> list[JobPosting]:
     jobs: list[JobPosting] = []
@@ -361,132 +703,7 @@ def scrape_revops_roles() -> list[JobPosting]:
     return unique
 
 
-# ---------- Source 7: LinkedIn Guest API ----------
-
-def scrape_linkedin() -> list[JobPosting]:
-    jobs: list[JobPosting] = []
-    queries = [
-        "marketing operations",
-        "revenue operations",
-        "revops",
-        "marketing automation",
-        "martech",
-    ]
-    # Also search by specific target companies to catch jobs that don't rank in generic queries
-    company_queries = [
-        "Fonoa", "Exclaimer", "Improvado", "Poka",
-    ]
-
-    seen_urls = set()
-
-    with httpx.Client(timeout=20.0, follow_redirects=True) as client:
-        all_search_terms = queries + company_queries
-        for q in all_search_terms:
-            for start in range(0, 50, 25):
-                try:
-                    url = (
-                        "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
-                        f"?keywords={urllib.parse.quote(q)}"
-                        f"&location=United%20Kingdom"
-                        f"&f_WT=2,3"
-                        f"&start={start}"
-                    )
-                    resp = client.get(url, headers={
-                        **HEADERS,
-                        "Accept": "text/html,application/xhtml+xml",
-                        "Referer": "https://www.linkedin.com/jobs/",
-                    })
-                    if resp.status_code != 200:
-                        continue
-
-                    soup = BeautifulSoup(resp.text, "lxml")
-
-                    # Find all job list items — LinkedIn returns a flat list of <li> items
-                    for card in soup.find_all("li"):
-                        link_el = card.find("a", href=True)
-                        if not link_el:
-                            continue
-                        href = link_el["href"]
-                        # Only follow LinkedIn job view links
-                        if not href.startswith("https://") or "/jobs/view/" not in href:
-                            continue
-                        if href in seen_urls:
-                            continue
-                        seen_urls.add(href)
-
-                        full_text = card.get_text(" ", strip=True)
-
-                        # Title is the link text (job title is the clickable text)
-                        title = link_el.get_text(strip=True)
-                        if not title or len(title) < 5:
-                            continue
-
-                        # Extract company name — LinkedIn shows it as the next significant text
-                        # after the title, often separated by "·" or on a new line
-                        company = "Unknown"
-                        # Look after the title in the text
-                        for tag in card.find_all(["h4", "span", "p", "div"]):
-                            cls = " ".join(tag.get("class", [])) if tag.get("class") else ""
-                            cls_lower = cls.lower()
-                            if any(x in cls_lower for x in ["company", "subtitle", "employer"]):
-                                company = tag.get_text(strip=True)
-                                break
-                        if company == "Unknown":
-                            # Fallback: split on separator chars
-                            parts = full_text.split("·")
-                            for part in parts:
-                                pt = part.strip()
-                                if pt and pt != title and len(pt) < 60 and not any(
-                                    c in pt.lower() for c in
-                                    ["hour", "day", "week", "month", "ago", "apply", "active",
-                                     "be an early", "actively hiring"]
-                                ):
-                                    company = pt
-                                    break
-
-                        # Location
-                        location = "UK"
-                        for tag in card.find_all(["span", "div", "p", "small"]):
-                            cls = " ".join(tag.get("class", [])) if tag.get("class") else ""
-                            if "location" in cls.lower():
-                                location = tag.get_text(strip=True)
-                                break
-                        if location == "UK":
-                            # Try to find location info from text patterns
-                            loc_match = re.search(r'·\s*(.+?)\s*·', full_text)
-                            if loc_match:
-                                candidate = loc_match.group(1).strip()
-                                if candidate and len(candidate) < 80 and "linkedin" not in candidate.lower():
-                                    location = candidate
-
-                        jobs.append(JobPosting(
-                            title=title,
-                            company=company,
-                            location=location,
-                            country="UK",
-                            description=full_text[:1000],
-                            url=href,
-                            source="LinkedIn",
-                            work_type=detect_work_type_from_text(title, full_text, location),
-                            company_url=None,
-                        ))
-
-                except Exception as e:
-                    logger.warning(f"LinkedIn error for q={q}, start={start}: {e}")
-
-    seen = set()
-    unique = []
-    for j in jobs:
-        key = (j.title.lower(), j.company.lower())
-        if key not in seen:
-            seen.add(key)
-            unique.append(j)
-
-    logger.info(f"  -> LinkedIn total: {len(unique)} unique jobs")
-    return unique
-
-
-# ---------- Source 8: Welcome to the Jungle ----------
+# ---------- Source 10: Welcome to the Jungle ----------
 
 def scrape_wttj() -> list[JobPosting]:
     jobs: list[JobPosting] = []
@@ -855,6 +1072,117 @@ def scrape_totaljobs() -> list[JobPosting]:
     return jobs
 
 
+# ---------- Jobgether (remote jobs, SSR HTML) ----------
+
+JOBGETHER_BASE = "https://jobgether.com"
+JOBGETHER_SEARCH_PATHS = [
+    "marketing-operations",
+    "revenue-operations",
+    "marketing-automation",
+    "revops",
+    "crm-direct-marketing",
+    "growth-performance",
+    "united-kingdom/marketing-operations",
+]
+
+
+def _parse_jobgether_card(anchor) -> Optional[dict]:
+    """Extract job fields from a Jobgether offer link and its card container."""
+    href = anchor.get("href", "")
+    title = (anchor.get("title") or anchor.get_text(strip=True) or "").strip()
+    if not title or len(title) < 5:
+        return None
+    if href and not href.startswith("http"):
+        href = JOBGETHER_BASE + href
+
+    card = anchor
+    for _ in range(12):
+        if not card.parent:
+            break
+        card = card.parent
+        card_text = card.get_text(" ", strip=True)
+        if "Remote from" in card_text or "Full time" in card_text or "Part time" in card_text:
+            break
+
+    company = ""
+    comp_el = card.select_one('a[href*="/remote-jobs/company-"]')
+    if comp_el:
+        company = comp_el.get_text(strip=True)
+
+    card_text = card.get_text(" ", strip=True)
+    location = ""
+    loc_match = re.search(
+        r"Remote from\s+(.+?)(?:\s+(?:Full time|Part time|Contract|Freelance|Internship)\b|$)",
+        card_text,
+    )
+    if loc_match:
+        location = loc_match.group(1).strip()
+
+    posted = None
+    for el in card.select("div, span"):
+        t = el.get_text(strip=True)
+        if t in ("Today", "Yesterday") or re.match(r"^\d+ days? ago$", t):
+            posted = t
+            break
+
+    country = "Remote"
+    loc_lower = location.lower()
+    if "united kingdom" in loc_lower or "(uk)" in loc_lower or loc_lower.endswith(" uk"):
+        country = "UK"
+    elif "united states" in loc_lower or "(usa)" in loc_lower:
+        country = "USA"
+
+    return {
+        "title": title,
+        "company": company or "Unknown",
+        "location": location or "Remote",
+        "country": country,
+        "url": href,
+        "posted_date": posted,
+    }
+
+
+def scrape_jobgether() -> list[JobPosting]:
+    """Jobgether.com — remote job listings via server-rendered category pages."""
+    jobs: list[JobPosting] = []
+    seen: set[tuple[str, str]] = set()
+
+    with httpx.Client(timeout=25.0, follow_redirects=True) as client:
+        for path in JOBGETHER_SEARCH_PATHS:
+            url = f"{JOBGETHER_BASE}/remote-jobs/{path}"
+            try:
+                resp = client.get(url, headers=HEADERS)
+                if resp.status_code != 200:
+                    logger.warning(f"Jobgether returned {resp.status_code} for {path}")
+                    continue
+                soup = BeautifulSoup(resp.text, "html.parser")
+                for anchor in soup.select('a[href*="/offer/"]'):
+                    parsed = _parse_jobgether_card(anchor)
+                    if not parsed:
+                        continue
+                    key = (parsed["title"].lower(), parsed["company"].lower())
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    jobs.append(JobPosting(
+                        title=parsed["title"],
+                        company=parsed["company"],
+                        location=parsed["location"],
+                        country=parsed["country"],
+                        description="",
+                        url=parsed["url"],
+                        source="Jobgether",
+                        salary=None,
+                        posted_date=parsed["posted_date"],
+                        work_type="Remote",
+                    ))
+            except Exception as e:
+                logger.warning(f"Jobgether failed for path={path}: {e}")
+
+    logger.info(f"     Jobgether: {len(jobs)} jobs found")
+    return jobs
+
+
 # ---------- Master scrape function ----------
 
 def scrape_all() -> list[JobPosting]:
@@ -862,16 +1190,22 @@ def scrape_all() -> list[JobPosting]:
     all_jobs: list[JobPosting] = []
 
     sources = [
-        # Adzuna — trial expired
+        # ── Tier 1: Reliable APIs (highest priority) ──
+        ("Adzuna", scrape_adzuna),
+        ("Arbeitnow", scrape_arbeitnow),
+        ("Jooble", scrape_jooble),
+        ("Careerjet", scrape_careerjet),
+        ("LinkedIn", scrape_linkedin),
+        # ── Tier 2: Aggregator APIs ──
         ("WeWorkRemotely", scrape_we_work_remotely),
         ("RemoteOK", scrape_remote_ok),
         ("Jobicy", scrape_jobicy),
+        ("Remotive", scrape_remotive),
         ("GoogleJobs", scrape_google_jobs),
         ("RevOpsRoles", scrape_revops_roles),
-        ("LinkedIn", scrape_linkedin),
         ("WTTJ", scrape_wttj),
-        # New sources
-        ("Remotive", scrape_remotive),
+        ("Jobgether", scrape_jobgether),
+        # ── Tier 3: UK job boards (HTML scrape, less reliable) ──
         ("Reed", scrape_reed),
         ("IndeedUK", scrape_indeed_uk),
         ("CWJobs", scrape_cwjobs),
@@ -905,6 +1239,10 @@ def scrape_all() -> list[JobPosting]:
     dupes = len(all_jobs) - len(unique)
     if dupes > 0:
         logger.info(f"Removed {dupes} duplicate jobs")
+
+    for job in unique:
+        if not job.company_url:
+            job.company_url = target_company_url(job.company)
 
     logger.info(f"Total raw jobs collected: {len(unique)}")
     return unique

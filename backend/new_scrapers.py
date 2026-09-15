@@ -13,6 +13,7 @@ from typing import Optional
 import httpx
 from bs4 import BeautifulSoup
 
+from backend.config import target_company_url
 from backend.filters import JobPosting
 
 logger = logging.getLogger(__name__)
@@ -41,6 +42,17 @@ def _detect_wt(title: str, desc: str, loc: str) -> str:
     if "remote" in combined and "hybrid" not in combined:
         return "Remote"
     if "hybrid" in combined:
+        return "Hybrid"
+    # If location is a hybrid-commutable city, assume hybrid
+    hybrid_cities = [
+        "london", "reading", "oxford", "southampton", "portsmouth", "bournemouth",
+        "cardiff", "newport", "birmingham", "coventry", "leicester",
+        "slough", "maidenhead", "bracknell", "windsor", "salisbury",
+        "worcester", "hereford", "warwick", "banbury",
+        "bristol", "bath", "swindon", "gloucester", "cheltenham",
+        "taunton", "exeter",
+    ]
+    if any(c in loc_lower for c in hybrid_cities):
         return "Hybrid"
     return "On-site"
 
@@ -508,14 +520,93 @@ def scrape_teamtailor() -> list[JobPosting]:
     return jobs
 
 
-# ── 9. Greenhouse-specific boards (target companies) ──
-# Greenhouse has a reliable JSON API for each company board.
-# This catches jobs that the generic Greenhouse search doesn't find.
+# ── 9. Named ATS boards (tracker companies + a few extra working boards) ──
+
+UK_EU_REMOTE = [
+    "uk", "united kingdom", "britain", "london", "england", "scotland", "wales",
+    "northern ireland", "ireland", "dublin", "europe", "emea", "eu ", " eu",
+    "germany", "france", "netherlands", "amsterdam", "spain", "italy", "sweden",
+    "denmark", "norway", "finland", "belgium", "switzerland", "austria",
+    "portugal", "poland", "remote", "anywhere", "worldwide",
+]
+
+
+def _uk_eu_remote(location: str) -> bool:
+    loc = (location or "").lower()
+    return any(c in loc for c in UK_EU_REMOTE)
+
+
+def _country_for(location: str) -> str:
+    loc = (location or "").lower()
+    if any(c in loc for c in ["uk", "united kingdom", "london", "england", "scotland", "wales", "northern ireland", "britain"]):
+        return "UK"
+    return "Worldwide"
+
+
+def _posted_from_greenhouse(raw: dict) -> str | None:
+    return raw.get("first_published") or raw.get("updated_at") or raw.get("created_at")
+
+
+def _posted_from_lever(raw: dict) -> str | None:
+    ts = raw.get("createdAt") or raw.get("updatedAt")
+    if ts is None:
+        return None
+    return str(ts)
+
+
+def _posted_from_ashby(raw: dict) -> str | None:
+    return raw.get("publishedAt") or raw.get("publishedDate") or raw.get("updatedAt") or raw.get("updated_at")
+
 
 GREENHOUSE_BOARDS = {
     "Exclaimer": "exclaimer",
     "Poka EU": "pokaeu",
-    # Add more target Greenhouse boards here
+    "6sense": "6sense",
+    "Adyen": "adyen",
+    "Airtable": "airtable",
+    "Algolia": "algolia",
+    "Amplitude": "amplitude",
+    "Asana": "asana",
+    "Braze": "braze",
+    "Clariness": "clariness",
+    "Cognism": "cognism",
+    "Contentful": "contentful",
+    "Culture Amp": "cultureamp",
+    "Databricks": "databricks",
+    "Datadog": "datadog",
+    "Dojo": "dojo",
+    "Dropbox": "dropbox",
+    "Elastic": "elastic",
+    "Figma": "figma",
+    "Fivetran": "fivetran",
+    "GitLab": "gitlab",
+    "GoCardless": "gocardless",
+    "Gong": "gongio",
+    "Hightouch": "hightouch",
+    "HubSpot": "hubspotjobs",
+    "Intercom": "intercom",
+    "Keystone Education Group": "keystone",
+    "Klaviyo": "klaviyo",
+    "Lattice": "lattice",
+    "MongoDB": "mongodb",
+    "Octopus Deploy": "octopusdeploy",
+    "Pendo": "pendo",
+    "PolyAI": "polyai",
+    "Remote": "remotecom",
+    "Stripe": "stripe",
+    "Tide": "tide",
+    "TrueLayer": "truelayer",
+    "Trustpilot": "trustpilot",
+    "Twilio": "twilio",
+    "Typeform": "typeform",
+    "Wise": "wise",
+    "Workato": "workato",
+    "Cloudflare": "cloudflare",
+    "dbt Labs": "dbtlabs",
+    "HashiCorp": "hashicorp",
+    "Okta": "okta",
+    "Mixpanel": "mixpanel",
+    "n8n": "n8n",
 }
 
 def scrape_greenhouse_boards() -> list[JobPosting]:
@@ -538,64 +629,160 @@ def scrape_greenhouse_boards() -> list[JobPosting]:
                         continue
 
                     location = raw.get("location", {}).get("name", "UK") or "UK"
-                    loc_lower = location.lower()
-                    # Only include UK/EU roles
-                    if not any(c in loc_lower for c in
-                               ["uk", "united kingdom", "london", "england",
-                                "scotland", "wales", "northern ireland",
-                                "ireland", "europe", "germany", "france",
-                                "remote"]):
+                    if not _uk_eu_remote(location):
                         continue
 
-                    # Fetch full job details including description
-                    description = ""
-                    salary = None
-                    work_type = None
-                    try:
-                        job_url = f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs/{raw['id']}"
-                        job_resp = client.get(job_url, headers=HEADERS)
-                        if job_resp.status_code == 200:
-                            job_data = job_resp.json()
-                            desc_html = job_data.get("content", "")
-                            if desc_html:
-                                description = BeautifulSoup(desc_html, "lxml").get_text(" ", strip=True)[:2000]
-                            # Check metadata for work type / salary
-                            for meta in job_data.get("metadata", []) or []:
-                                meta_name = (meta.get("name") or "").lower()
-                                meta_val = (meta.get("value") or "")
-                                if "remote" in meta_name or "work" in meta_name or "hybrid" in meta_name:
-                                    work_type = meta_val
-                    except Exception as e:
-                        logger.debug(f"  Greenhouse board {board} job {raw['id']} detail fetch: {e}")
-
-                    if not description:
-                        description = f"{title} at {company}. Location: {location}."
-
-                    # Determine country — prefer UK if mentioned in location, even if other countries are also present
-                    country = "UK" if any(c in loc_lower for c in
-                                           ["uk", "united kingdom", "london", "england",
-                                            "scotland", "wales", "northern ireland",
-                                            "britain"]) else "Worldwide"
-
-                    if not work_type:
-                        work_type = _detect_wt(title, description, location)
-
+                    description = f"{title} at {company}. Location: {location}."
                     jobs.append(JobPosting(
                         title=title,
                         company=company,
                         location=location,
-                        country=country,
+                        country=_country_for(location),
                         description=description,
                         url=raw.get("absolute_url", ""),
                         source="Greenhouse",
                         salary=_extract_salary(description),
-                        work_type=work_type,
+                        work_type=_detect_wt(title, description, location),
+                        posted_date=_posted_from_greenhouse(raw),
+                        company_url=target_company_url(company),
                     ))
 
                 logger.info(f"  Greenhouse board {board}: {len([j for j in jobs if j.company == company])} jobs")
             except Exception as e:
                 logger.warning(f"  Greenhouse board {board} error: {e}")
 
+    return jobs
+
+
+LEVER_BOARDS = {
+    "Aircall": "aircall",
+    "Contentsquare": "contentsquare",
+    "Qonto": "qonto",
+    "Webflow": "webflow",
+    "Canva": "canva",
+    "Loom": "loom",
+}
+
+
+def scrape_lever_boards() -> list[JobPosting]:
+    """Phase 2: scrape named B2B SaaS Lever career boards."""
+    jobs: list[JobPosting] = []
+    with httpx.Client(timeout=20.0) as client:
+        for company, slug in LEVER_BOARDS.items():
+            try:
+                url = f"https://api.lever.co/v0/postings/{slug}?mode=json"
+                resp = client.get(url, headers={**HEADERS, "Accept": "application/json"})
+                if resp.status_code != 200:
+                    logger.warning(f"  Lever board {slug} returned {resp.status_code}")
+                    continue
+                for raw in resp.json() or []:
+                    title = (raw.get("text") or "").strip()
+                    if not title:
+                        continue
+                    cats = raw.get("categories") or {}
+                    location = cats.get("location") or "Remote"
+                    if not _uk_eu_remote(location):
+                        continue
+                    desc = raw.get("descriptionPlain") or title
+                    href = raw.get("hostedUrl") or raw.get("applyUrl") or ""
+                    jobs.append(JobPosting(
+                        title=title,
+                        company=company,
+                        location=location,
+                        country=_country_for(location),
+                        description=str(desc)[:2000],
+                        url=href,
+                        source="Lever",
+                        salary=_extract_salary(str(desc)),
+                        work_type=_detect_wt(title, str(desc), location),
+                        posted_date=_posted_from_lever(raw),
+                        company_url=target_company_url(company),
+                    ))
+                logger.info(f"  Lever board {slug}: {len([j for j in jobs if j.company == company])} jobs")
+            except Exception as e:
+                logger.warning(f"  Lever board {slug} error: {e}")
+    return jobs
+
+
+ASHBY_BOARDS = {
+    "9fin": "9fin",
+    "Airwallex": "airwallex",
+    "Camunda": "camunda",
+    "ClearBank": "clearbank",
+    "ClickUp": "clickup",
+    "Confluent": "confluent",
+    "DeepL": "deepl",
+    "Demandbase": "demandbase",
+    "Front": "frontcareers",
+    "Frontify": "frontify",
+    "HiBob": "bob",
+    "IRIS Software Group": "irissoftwaregroup",
+    "Iterable": "iterable",
+    "LeanData": "leandata",
+    "Miro": "miro",
+    "Multiverse": "multiverse",
+    "Notion": "notion",
+    "OakNorth": "oaknorth",
+    "Paddle": "paddle",
+    "Pennylane": "pennylane",
+    "Plaid": "plaid",
+    "Pleo": "pleo",
+    "Quantexa": "quantexa",
+    "Sentry": "sentry",
+    "Snowflake": "snowflake",
+    "Synthesia": "synthesia",
+    "Thought Machine": "thought-machine",
+    "Vertice": "vertice",
+    "Xero": "xero",
+    "Zapier": "zapier",
+    "Linear": "linear",
+    "Vercel": "vercel",
+    "Ramp": "ramp",
+    "Anthropic": "anthropic",
+}
+
+
+def scrape_ashby_boards() -> list[JobPosting]:
+    """Phase 2: scrape named B2B SaaS Ashby job boards."""
+    jobs: list[JobPosting] = []
+    with httpx.Client(timeout=20.0) as client:
+        for company, slug in ASHBY_BOARDS.items():
+            try:
+                url = f"https://api.ashbyhq.com/posting-api/job-board/{slug}"
+                resp = client.get(url, headers={**HEADERS, "Accept": "application/json"})
+                if resp.status_code != 200:
+                    logger.warning(f"  Ashby board {slug} returned {resp.status_code}")
+                    continue
+                data = resp.json() or {}
+                postings = data.get("jobs") or data.get("postings") or []
+                for raw in postings:
+                    title = (raw.get("title") or "").strip()
+                    if not title:
+                        continue
+                    location = raw.get("location") or "Remote"
+                    if isinstance(location, dict):
+                        location = location.get("locationName") or location.get("name") or "Remote"
+                    location = str(location)
+                    if not _uk_eu_remote(location):
+                        continue
+                    href = raw.get("jobUrl") or raw.get("applyUrl") or ""
+                    desc = raw.get("descriptionPlain") or f"{title} at {company}."
+                    jobs.append(JobPosting(
+                        title=title,
+                        company=company,
+                        location=location,
+                        country=_country_for(location),
+                        description=str(desc)[:2000],
+                        url=href,
+                        source="Ashby",
+                        salary=_extract_salary(str(desc)),
+                        work_type=_detect_wt(title, str(desc), location),
+                        posted_date=_posted_from_ashby(raw),
+                        company_url=target_company_url(company),
+                    ))
+                logger.info(f"  Ashby board {slug}: {len([j for j in jobs if j.company == company])} jobs")
+            except Exception as e:
+                logger.warning(f"  Ashby board {slug} error: {e}")
     return jobs
 
 
@@ -680,8 +867,9 @@ def scrape_jobscore() -> list[JobPosting]:
 # For companies that don't use a standard ATS, scrape their careers page directly.
 
 COMPANY_CAREERS_URLS = [
-    # Add direct career page URLs here as needed
-    # Format: (company_name, careers_url)
+    # Direct career page URLs for target companies
+    ("LexisNexis", "https://careers.lexisnexis.com/search-jobs"),
+    # memoryBlue is a recruitment agency — jobs appear on LinkedIn
 ]
 
 
@@ -744,15 +932,13 @@ def scrape_company_careers() -> list[JobPosting]:
 # ── Master function ──
 
 ALL_NEW_SOURCES = [
-    ("Greenhouse", scrape_greenhouse),
+    # ATS boards with reliable JSON APIs
+    ("GreenhouseBoards", scrape_greenhouse_boards),
+    ("LeverBoards", scrape_lever_boards),
+    ("AshbyBoards", scrape_ashby_boards),
     ("Lever", scrape_lever),
     ("Workable", scrape_workable),
-    ("Bebee", scrape_bebee),
     ("Ashby", scrape_ashby),
-    ("Comeet", scrape_comeet),
-    ("Jobvite", scrape_jobvite),
-    ("Teamtailor", scrape_teamtailor),
-    ("GreenhouseBoards", scrape_greenhouse_boards),
     ("JobScore", scrape_jobscore),
     ("CompanyCareers", scrape_company_careers),
 ]

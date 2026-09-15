@@ -4,6 +4,7 @@ Job filtering and scoring engine — max score is 100.
 
 import re
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from backend.config import (
@@ -15,6 +16,8 @@ from backend.config import (
     KEYWORD_SCORES,
     KEYWORDS_EXCLUDE,
     DESIRED_SKILLS,
+    TITLE_REQUIRED_TERMS,
+    MAX_POSTED_AGE_DAYS,
 )
 
 
@@ -98,13 +101,104 @@ def extract_city(location: str) -> str:
 
 
 def detect_work_type(title: str, description: str, location: str) -> str:
-    """Detect work type from text if not already set."""
+    """Detect work type from text if not already set.
+    If no explicit remote/hybrid keyword is found but the location
+    is a hybrid-commutable city, default to Hybrid."""
     combined = normalise(f"{title} {description} {location}")
     if "remote" in combined and "hybrid" not in combined:
         return "Remote"
     if "hybrid" in combined:
         return "Hybrid"
+    # If location is a hybrid-commutable city, assume hybrid
+    loc_n = normalise(location)
+    hybrid_cities = [
+        "london", "reading", "oxford", "southampton", "portsmouth", "bournemouth",
+        "cardiff", "newport", "birmingham", "coventry", "leicester",
+        "slough", "maidenhead", "bracknell", "windsor", "salisbury",
+        "worcester", "hereford", "warwick", "banbury",
+        "bristol", "bath", "swindon", "gloucester", "cheltenham",
+        "taunton", "exeter",
+    ]
+    if any(c in loc_n for c in hybrid_cities):
+        return "Hybrid"
     return "On-site"
+
+
+def parse_posted_date(value: Optional[str]) -> Optional[datetime]:
+    """Turn scraper date strings into timezone-aware datetimes."""
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s:
+        return None
+    now = datetime.now(timezone.utc)
+    sl = s.lower()
+    if sl in ("today", "just now", "just posted"):
+        return now
+    if sl == "yesterday":
+        return now - timedelta(days=1)
+    m = re.match(r"^(\d+)\s*(minutes?|mins?)\s+ago$", sl)
+    if m:
+        return now - timedelta(minutes=int(m.group(1)))
+    m = re.match(r"^(\d+)\s*(hours?|hrs?)\s+ago$", sl)
+    if m:
+        return now - timedelta(hours=int(m.group(1)))
+    m = re.match(r"^(\d+)\s+days?\s+ago$", sl)
+    if m:
+        return now - timedelta(days=int(m.group(1)))
+    m = re.match(r"^(\d+)\s+weeks?\s+ago$", sl)
+    if m:
+        return now - timedelta(weeks=int(m.group(1)))
+    if re.fullmatch(r"\d{10,13}", s):
+        ts = int(s)
+        if ts > 10_000_000_000:
+            ts /= 1000
+        return datetime.fromtimestamp(ts, tz=timezone.utc)
+    iso = s.replace("Z", "+00:00")
+    try:
+        dt = datetime.fromisoformat(iso)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except ValueError:
+        pass
+    months = {
+        "jan": 1, "january": 1, "feb": 2, "february": 2, "mar": 3, "march": 3,
+        "apr": 4, "april": 4, "may": 5, "jun": 6, "june": 6, "jul": 7, "july": 7,
+        "aug": 8, "august": 8, "sep": 9, "sept": 9, "september": 9,
+        "oct": 10, "october": 10, "nov": 11, "november": 11, "dec": 12, "december": 12,
+    }
+    m = re.match(r"^(\d{1,2})\s+([A-Za-z]+)(?:\s+(\d{4}))?$", s)
+    if not m:
+        m = re.match(r"^([A-Za-z]+)\s+(\d{1,2})(?:,?\s+(\d{4}))?$", s)
+        if m:
+            month_name, day_s, year_s = m.group(1), m.group(2), m.group(3)
+        else:
+            return None
+    else:
+        day_s, month_name, year_s = m.group(1), m.group(2), m.group(3)
+    month = months.get(month_name.lower())
+    if not month:
+        return None
+    year = int(year_s) if year_s else now.year
+    try:
+        dt = datetime(year, month, int(day_s), tzinfo=timezone.utc)
+    except ValueError:
+        return None
+    if dt > now + timedelta(days=1):
+        dt = dt.replace(year=year - 1)
+    return dt
+
+
+def posted_within_days(job: JobPosting, days: int = MAX_POSTED_AGE_DAYS) -> bool:
+    posted = parse_posted_date(job.posted_date)
+    if posted is None:
+        return False
+    return datetime.now(timezone.utc) - posted <= timedelta(days=days)
+
+
+def drop_stale_jobs(jobs: list[JobPosting], days: int = MAX_POSTED_AGE_DAYS) -> list[JobPosting]:
+    return [job for job in jobs if posted_within_days(job, days)]
 
 
 def extract_skills(description: str, title: str = "") -> list[str]:
@@ -134,6 +228,10 @@ def score_job(job: JobPosting) -> float:
     for kw in KEYWORDS_EXCLUDE:
         if kw in title_n:
             return 0.0
+
+    # ── Title must contain at least one required term ──
+    if not any(term in title_n for term in TITLE_REQUIRED_TERMS):
+        return 0.0
 
     # ── Location eligibility ──
     # Country must be United Kingdom ONLY. Anything else is excluded.

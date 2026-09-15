@@ -1,30 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" href="/MOPSHub/favicon.svg" type="image/svg+xml">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Job Scanner — MOpsWork</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <script src="/static/api-config.js"></script>
+  <script src="/MOPSWork/static/api-config.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --color-bg: #f8f9fc;
+      --color-bg: #f5f7fa;
       --color-surface: #ffffff;
-      --color-surface-hover: #f0f2f8;
-      --color-border: #e2e5ef;
-      --color-text: #1a1a2e;
-      --color-text-muted: #6b7280;
-      --color-accent: #7c3aed;
-      --color-accent-glow: rgba(124, 58, 237, 0.25);
-      --color-accent-2: #06b6d4;
-      --color-accent-3: #f43f5e;
+      --color-surface-hover: #eef0f2;
+      --color-border: #e9edf2;
+      --color-text: #38444d;
+      --color-text-muted: #64748b;
+      --color-accent: #00739c;
+      --color-accent-red: #bf1a22;
+      --color-dark: #38444d;
       --color-success: #10b981;
-      --radius: 12px;
-      --radius-lg: 20px;
+      --color-warning: #f59e0b;
+      --radius: 10px;
+      --radius-lg: 12px;
       --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --max-width: 1400px;
     }
@@ -36,51 +37,90 @@
       color: var(--color-text);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    a { color: var(--color-accent); text-decoration: none; }
-
-    .bg-grid {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
-      pointer-events: none;
-      background-image:
-        linear-gradient(rgba(124, 58, 237, 0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(124, 58, 237, 0.06) 1px, transparent 1px);
-      background-size: 60px 60px;
-    }
+    a { color: var(--color-accent); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: var(--color-accent-red); }
 
     .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
 
-    /* Nav */
-    nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 0; border-bottom: 1px solid var(--color-border);
+    /* ── Sticky Header ── */
+    .site-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
     }
     .logo {
-      font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px;
-      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--color-accent);
+      letter-spacing: -0.02em;
+      text-decoration: none;
     }
-    .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
-    .nav-links a { color: var(--color-text-muted); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--color-text); }
+    .logo:hover { color: var(--color-accent); }
+    .nav-links { display: flex; align-items: center; gap: 24px; list-style: none; }
+    .nav-links a {
+      color: #475569;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--color-accent); }
 
+    /* ── Banner Hero ── */
+    .banner {
+      background: linear-gradient(135deg, #00739c 0%, #38444d 100%);
+      color: #ffffff;
+      padding: 64px 0 56px;
+    }
+    .banner-content {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .banner-content h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+    .banner-content p {
+      font-size: 1.05rem;
+      color: #cbd5e1;
+      max-width: 600px;
+    }
+
+    /* Buttons */
     .btn {
-      display: inline-flex; align-items: center; gap: 10px; padding: 16px 36px;
-      border-radius: 100px; font-family: var(--font); font-size: 1rem; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 10px; padding: 12px 28px;
+      border-radius: 8px; font-family: var(--font); font-size: 0.9rem; font-weight: 600;
       border: none; cursor: pointer; transition: all 0.3s;
     }
     .btn-primary {
-      background: linear-gradient(135deg, var(--color-accent), #5a4bd4); color: #fff;
-      box-shadow: 0 4px 25px var(--color-accent-glow);
+      background: #00739c; color: #fff;
     }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px var(--color-accent-glow); }
+    .btn-primary:hover { background: #38444d; }
     .btn-sm { padding: 8px 20px; font-size: 0.85rem; }
     .btn-outline {
       background: transparent; color: var(--color-accent);
       border: 1px solid var(--color-accent); padding: 6px 16px; font-size: 0.78rem;
     }
-    .btn-outline:hover { background: rgba(124, 58, 237, 0.06); }
+    .btn-outline:hover { background: rgba(0, 115, 156, 0.06); }
 
     /* Profile / CV bar */
     .jobs-profile-bar {
@@ -102,21 +142,12 @@
       background: none; border: none; color: var(--color-text-muted); cursor: pointer;
       font-size: 1.1rem; line-height: 1; padding: 0 2px;
     }
-    .profile-remove-btn:hover { color: var(--color-accent-3); }
+    .profile-remove-btn:hover { color: var(--color-accent-red); }
     .jobs-cv-btn-wrapper { cursor: pointer; }
     .jobs-cv-toggle {
       display: flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 500;
       cursor: pointer; color: var(--color-text-muted); white-space: nowrap;
     }
-
-    /* Page header */
-    .page-header { padding: 40px 0 24px; }
-    .page-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 6px; }
-    .page-header h1 .gradient-text {
-      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .page-header p { color: var(--color-text-muted); font-size: 1rem; max-width: 640px; }
 
     /* Widget */
     .jobs-widget {
@@ -132,7 +163,7 @@
       display: flex; align-items: center; gap: 8px;
       font-size: 0.85rem; color: var(--color-text-muted); margin-top: 2px;
     }
-    .jobs-head-meta strong { color: var(--color-accent-2); font-weight: 700; }
+    .jobs-head-meta strong { color: var(--color-accent); font-weight: 700; }
     .jobs-head-right { display: flex; align-items: center; gap: 12px; }
 
     /* Filters bar */
@@ -195,36 +226,36 @@
     .jobs-source {
       display: inline-block; padding: 2px 6px; border-radius: 100px;
       font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2px;
-      background: rgba(108, 92, 231, 0.1); color: var(--color-accent); white-space: nowrap;
+      background: rgba(0, 115, 156, 0.1); color: var(--color-accent); white-space: nowrap;
     }
     .jobs-source--remoteok { background: rgba(255, 107, 107, 0.08); color: #e74c3c; }
-    .jobs-source--weworkremotely { background: rgba(6, 182, 212, 0.08); color: var(--color-accent-2); }
-    .jobs-source--adzuna { background: rgba(244, 63, 94, 0.08); color: var(--color-accent-3); }
+    .jobs-source--weworkremotely { background: rgba(6, 182, 212, 0.08); color: #06b6d4; }
+    .jobs-source--adzuna { background: rgba(244, 63, 94, 0.08); color: #bf1a22; }
     .jobs-source--jobicy { background: rgba(245, 158, 11, 0.08); color: #d97706; }
-    .jobs-source--googlejobs { background: rgba(124, 58, 237, 0.08); color: var(--color-accent); }
+    .jobs-source--googlejobs { background: rgba(0, 115, 156, 0.08); color: var(--color-accent); }
     .jobs-source--linkedin { background: rgba(10, 102, 194, 0.08); color: #0a66c2; }
     .jobs-source--revopsroles { background: rgba(16, 185, 129, 0.08); color: #059669; }
-    .jobs-source--wttj { background: rgba(124, 58, 237, 0.08); color: var(--color-accent); }
+    .jobs-source--wttj { background: rgba(0, 115, 156, 0.08); color: var(--color-accent); }
 
     /* Score */
     .jobs-score { display: flex; flex-direction: column; gap: 1px; }
     .jobs-score-value { font-weight: 700; font-size: 0.8rem; }
     .jobs-score-label { font-size: 0.6rem; color: var(--color-text-muted); }
     .jobs-score-bar { height: 2px; border-radius: 1px; background: var(--color-border); margin-top: 2px; min-width: 30px; }
-    .score-low .jobs-score-value { color: var(--color-accent-3); }
-    .score-low .jobs-score-bar { background: var(--color-accent-3); }
+    .score-low .jobs-score-value { color: #bf1a22; }
+    .score-low .jobs-score-bar { background: #bf1a22; }
     .score-mid .jobs-score-value { color: #d97706; }
     .score-mid .jobs-score-bar { background: #d97706; }
     .score-high .jobs-score-value { color: var(--color-success); }
     .score-high .jobs-score-bar { background: var(--color-success); }
     .jobs-score-detail { display: flex; flex-wrap: wrap; gap: 1px; margin-top: 1px; }
-    .jobs-score-detail-tag { font-size: 0.55rem; padding: 0 3px; background: rgba(124, 58, 237, 0.06); border-radius: 2px; color: var(--color-text-muted); }
+    .jobs-score-detail-tag { font-size: 0.55rem; padding: 0 3px; background: rgba(0, 115, 156, 0.06); border-radius: 2px; color: var(--color-text-muted); }
 
     .jobs-date { font-size: 0.7rem; color: var(--color-text-muted); white-space: nowrap; }
 
     /* Skills */
     .jobs-skills-list { display: flex; flex-wrap: wrap; gap: 1px; }
-    .jobs-skill-tag { font-size: 0.6rem; padding: 0px 5px; border-radius: 3px; background: rgba(108, 92, 231, 0.06); color: var(--color-text-muted); border: 1px solid var(--color-border); white-space: nowrap; }
+    .jobs-skill-tag { font-size: 0.6rem; padding: 0px 5px; border-radius: 3px; background: rgba(0, 115, 156, 0.06); color: var(--color-text-muted); border: 1px solid var(--color-border); white-space: nowrap; }
     .jobs-skill-tag.matched { background: rgba(16, 185, 129, 0.1); color: #059669; border-color: rgba(16, 185, 129, 0.2); }
     .jobs-skill-tag.gap { background: rgba(253, 121, 168, 0.06); color: #db2777; border-color: rgba(253, 121, 168, 0.15); }
     .jobs-no-skills { font-size: 0.7rem; color: var(--color-text-muted); }
@@ -240,7 +271,7 @@
     .jobs-status-select:focus { border-color: var(--color-accent); }
     .jobs-status-select.status-applied { color: #059669; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.06); }
     .jobs-status-select.status-interviewing { color: #2563eb; border-color: rgba(37,99,235,0.3); background: rgba(37,99,235,0.06); }
-    .jobs-status-select.status-offer { color: #7c3aed; border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.06); }
+    .jobs-status-select.status-offer { color: #00739c; border-color: rgba(0,115,156,0.3); background: rgba(0,115,156,0.06); }
     .jobs-status-select.status-withdrawn { color: #d97706; border-color: rgba(217,119,6,0.3); background: rgba(217,119,6,0.06); }
     .jobs-status-select.status-rejected { color: #dc2626; border-color: rgba(220,38,38,0.3); background: rgba(220,38,38,0.06); }
 
@@ -252,14 +283,23 @@
     }
     .jobs-foot-text { font-size: 0.72rem; color: var(--color-text-muted); }
 
-    /* Footer */
-    footer {
-      border-top: 1px solid var(--color-border); padding: 32px 0; margin-top: 48px;
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    /* ── Footer ── */
+    .site-footer {
+      background: #ffffff;
+      border-top: 1px solid var(--color-border);
+      padding: 20px 0;
+      margin-top: auto;
     }
-    footer p { color: var(--color-text-muted); font-size: 0.85rem; }
-    .footer-links { display: flex; gap: 24px; list-style: none; }
-    .footer-links a { color: var(--color-text-muted); font-size: 0.85rem; }
+    .footer-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+      text-align: center;
+    }
+    .site-footer p {
+      font-size: 0.825rem;
+      color: #94a3b8;
+    }
 
     /* Responsive */
     @media (max-width: 1024px) {
@@ -268,7 +308,6 @@
       .jobs-table { font-size: 0.78rem; }
     }
     @media (max-width: 768px) {
-      .nav-links li:not(.nav-cta-li) { display: none; }
       .jobs-head { flex-direction: column; align-items: flex-start; }
       .jobs-head-right .btn-sm { width: 100%; justify-content: center; }
     }
@@ -280,46 +319,36 @@
 </head>
 <body>
 
-  <div class="bg-grid"></div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">MOpsWork</a>
+      <nav class="nav-links">
+        <a href="/MOPSWork/jobs.html" style="color: var(--color-accent); font-weight: 600;">Job Scanner</a>
+        <a href="/MOPSWork/applications.html">Applications</a>
+        <a href="/MOPSWork/skills-in-demand.html">Skills</a>
+        <a href="/MOPSWork/samples.html">Samples</a>
+        <a href="/MOPSWork/aboutme.html">About Me</a>
+      </nav>
+    </div>
+  </header>
 
-  <div class="container">
-    <nav>
-      <a href="/" class="logo" style="text-decoration: none;">MOpsWork</a>
-      <ul class="nav-links">
-        <li><a href="/jobs.html" style="color: var(--color-accent);">Job Scanner</a></li>
-        <li><a href="/applications.html">Applications</a></li>
-        <li><a href="/scoring.html">Scoring</a></li>
-        <li><a href="/skills-in-demand.html">Skills</a></li>
-        <li><a href="/samples.html">Samples</a></li>
-        <li><a href="/aboutme.html">About Me</a></li>
-        <li><a href="/#features">Features</a></li>
-        <li><a href="/#waitlist">Waitlist</a></li>
-      </ul>
-    </nav>
-  </div>
-
-  <div class="container">
-    <div class="page-header">
-      <h1><span class="gradient-text">Smart Job Scanner</span></h1>
+  <section class="banner">
+    <div class="banner-content">
+      <h1>Smart Job Scanner</h1>
       <p>Live results from multiple job boards, scored against your personal criteria. Use the filters to narrow down.</p>
     </div>
-  </div>
+  </section>
 
-  <div class="container">
+  <div class="container" style="flex: 1;">
     <div data-jobs-widget="mount"></div>
   </div>
 
-  <div class="container">
-    <footer>
+  <footer class="site-footer">
+    <div class="footer-inner">
       <p>&copy; 2026 MOpsWork. All rights reserved.</p>
-      <ul class="footer-links">
-        <li><a href="#">Privacy</a></li>
-        <li><a href="#">Terms</a></li>
-        <li><a href="#">Contact</a></li>
-      </ul>
-    </footer>
-  </div>
+    </div>
+  </footer>
 
-  <script src="/static/jobs-widget.js?v=2"></script>
+  <script src="/MOPSWork/static/jobs-widget.js?v=3"></script>
 </body>
 </html>

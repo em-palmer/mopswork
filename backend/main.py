@@ -21,7 +21,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from backend.config import DESIRED_SKILLS, KEYWORDS_SCORE_10, KEYWORDS_SCORE_20
-from backend.filters import JobPosting, filter_and_rank, score_job
+from backend.filters import JobPosting, filter_and_rank, score_job, parse_posted_date, drop_stale_jobs
 from backend.scraper import scrape_all
 
 # ── logging ──
@@ -128,7 +128,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting initial scrape...")
     try:
         raw = scrape_all()
-        cached_jobs = filter_and_rank(raw)
+        cached_jobs = drop_stale_jobs(filter_and_rank(raw))
         last_scrape_time = datetime.now()
         logger.info(f"Initial scrape complete: {len(cached_jobs)} matching jobs")
     except Exception as e:
@@ -256,7 +256,7 @@ def get_jobs(
     salary_min: Optional[float] = Query(None),
     salary_max: Optional[float] = Query(None),
     status: Optional[str] = Query(None),
-    posted_since: Optional[str] = Query(None),
+    posted_since: Optional[str] = Query("1w"),
     exclude_na: bool = Query(False),
     limit: int = Query(100, ge=1, le=500),
     cv_compare: bool = Query(False),
@@ -289,22 +289,20 @@ def get_jobs(
             continue
         if salary_max is not None and (j.salary_lower is None or j.salary_lower > salary_max):
             continue
-        # Date posted filter
-        if posted_since and j.posted_date:
-            try:
-                posted = datetime.fromisoformat(j.posted_date.replace("Z", "+00:00"))
-            except Exception:
-                posted = None
-            if posted:
-                delta = now - posted
-                if posted_since == "24h" and delta.total_seconds() > 86400:
-                    continue
-                elif posted_since == "3d" and delta.total_seconds() > 259200:
-                    continue
-                elif posted_since == "1w" and delta.total_seconds() > 604800:
-                    continue
-                elif posted_since == "older" and delta.total_seconds() <= 604800:
-                    continue
+        # Date posted filter — unparseable dates are treated as stale
+        if posted_since and posted_since not in ("all", ""):
+            posted = parse_posted_date(j.posted_date)
+            if posted is None:
+                continue
+            delta = now - posted
+            if posted_since == "24h" and delta.total_seconds() > 86400:
+                continue
+            elif posted_since == "3d" and delta.total_seconds() > 259200:
+                continue
+            elif posted_since == "1w" and delta.total_seconds() > 604800:
+                continue
+            elif posted_since == "older" and delta.total_seconds() <= 604800:
+                continue
         # Exclude N/A
         if exclude_na:
             job_id = _make_job_id(j)
@@ -431,7 +429,7 @@ def trigger_scrape():
     global cached_jobs, last_scrape_time
     try:
         raw = scrape_all()
-        cached_jobs = filter_and_rank(raw)
+        cached_jobs = drop_stale_jobs(filter_and_rank(raw))
         last_scrape_time = datetime.now()
         return ScrapeResponse(
             status="ok",

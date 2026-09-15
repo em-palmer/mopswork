@@ -16,7 +16,7 @@
     min_score: 0, max_score: 100, source: "all",
     city: "", work_type: "", seniority: "", keyword: "",
     country: "", salary_min: "", salary_max: "",
-    posted_since: "",
+    posted_since: "1w",
   };
 
   let tbodyEl, countEl, avgEl, loadingEl, sourceSelect, profileStatusEl, cvCompareToggle;
@@ -50,6 +50,7 @@
         Object.assign(filters, saved);
       }
     } catch (e) {}
+    if (!filters.posted_since) filters.posted_since = "1w";
   }
 
   function restoreFormFromFilters() {
@@ -77,12 +78,61 @@
       }
     }
   }
+  function parsePostedDate(value) {
+    if (value == null) return null;
+    var s = String(value).trim();
+    if (!s) return null;
+    var sl = s.toLowerCase();
+    var now = Date.now();
+    if (sl === "today" || sl === "just now" || sl === "just posted") return new Date(now);
+    if (sl === "yesterday") return new Date(now - 86400000);
+    var m = sl.match(/^(\d+)\s*(minutes?|mins?)\s+ago$/);
+    if (m) return new Date(now - parseInt(m[1], 10) * 60000);
+    m = sl.match(/^(\d+)\s*(hours?|hrs?)\s+ago$/);
+    if (m) return new Date(now - parseInt(m[1], 10) * 3600000);
+    m = sl.match(/^(\d+)\s+days?\s+ago$/);
+    if (m) return new Date(now - parseInt(m[1], 10) * 86400000);
+    m = sl.match(/^(\d+)\s+weeks?\s+ago$/);
+    if (m) return new Date(now - parseInt(m[1], 10) * 7 * 86400000);
+    var iso = Date.parse(s);
+    if (!isNaN(iso)) return new Date(iso);
+    var months = {jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
+    m = s.match(/^(\d{1,2})\s+([A-Za-z]+)(?:\s+(\d{4}))?$/);
+    var day, monthName, year;
+    if (m) {
+      day = parseInt(m[1], 10); monthName = m[2]; year = m[3];
+    } else {
+      m = s.match(/^([A-Za-z]+)\s+(\d{1,2})(?:,?\s+(\d{4}))?$/);
+      if (!m) return null;
+      monthName = m[1]; day = parseInt(m[2], 10); year = m[3];
+    }
+    var month = months[monthName.toLowerCase()];
+    if (month == null) return null;
+    var y = year ? parseInt(year, 10) : new Date().getFullYear();
+    var d = new Date(Date.UTC(y, month, day));
+    if (isNaN(d.getTime())) return null;
+    if (d.getTime() > now + 86400000) d = new Date(Date.UTC(y - 1, month, day));
+    return d;
+  }
+
+  function jobMatchesPostedSince(job, since) {
+    if (!since || since === "all") return true;
+    var posted = parsePostedDate(job.posted_date);
+    if (!posted) return false;
+    var sec = (Date.now() - posted.getTime()) / 1000;
+    if (since === "24h") return sec <= 86400;
+    if (since === "3d") return sec <= 259200;
+    if (since === "1w") return sec <= 604800;
+    if (since === "older") return sec > 604800;
+    return true;
+  }
+
   function timeAgo(ds) {
     if (!ds) return "";
-    const d = new Date(ds);
-    if (isNaN(d.getTime())) return "";
-    const dy = Math.floor((Date.now() - d.getTime()) / 86400000);
-    if (dy === 0) return "Today";
+    var d = parsePostedDate(ds) || new Date(ds);
+    if (isNaN(d.getTime())) return String(ds);
+    var dy = Math.floor((Date.now() - d.getTime()) / 86400000);
+    if (dy <= 0) return "Today";
     if (dy === 1) return "Yesterday";
     if (dy < 7) return dy + "d ago";
     return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
@@ -212,20 +262,23 @@
   function renderTable() {
     if (!tbodyEl) return;
     // Update the match counter from the current filtered results
-    if (countEl) countEl.textContent = allJobs.length.toLocaleString();
-    if (avgEl && allJobs.length > 0) {
+    var jobs = allJobs.filter(function(job) {
+      return jobMatchesPostedSince(job, filters.posted_since);
+    });
+    if (countEl) countEl.textContent = jobs.length.toLocaleString();
+    if (avgEl && jobs.length > 0) {
       var sum = 0;
-      for (var i = 0; i < allJobs.length; i++) sum += allJobs[i].match_score || 0;
-      avgEl.textContent = Math.round(sum / allJobs.length) + "%";
+      for (var i = 0; i < jobs.length; i++) sum += jobs[i].match_score || 0;
+      avgEl.textContent = Math.round(sum / jobs.length) + "%";
     } else if (avgEl) {
       avgEl.textContent = "0%";
     }
-    if (allJobs.length === 0) {
+    if (jobs.length === 0) {
       tbodyEl.innerHTML = '<tr class="jobs-empty"><td colspan="13">No matching jobs found.</td></tr>';
       return;
     }
 
-    tbodyEl.innerHTML = allJobs.map(function(job) {
+    tbodyEl.innerHTML = jobs.map(function(job) {
       var skills = job.matched_skills || [];
       var gap = (job.skills_gap || []).slice(0, 6);
       var keySkills = job.key_skills || [];
@@ -316,7 +369,7 @@
         <div class="jobs-filter-group"><label>Keyword</label><input id="filterKeyword" type="text" class="jobs-filter-input" placeholder="e.g. marketing ops" /></div>\
         <div class="jobs-filter-group"><label>Country</label><select id="filterCountry" class="jobs-filter-select"><option value="">All</option><option value="uk">UK</option><option value="worldwide">Worldwide</option></select></div>\
         <div class="jobs-filter-group"><label>Salary</label><select id="filterSalary" class="jobs-filter-select"><option value="">Any</option><option value="0-60000">< £60k</option><option value="60000-90000">£60k-90k</option><option value="90000-120000">£90k-120k</option><option value="120000-999999">£120k+</option></select></div>\
-        <div class="jobs-filter-group"><label>Date Posted</label><select id="filterPostedSince" class="jobs-filter-select"><option value="">Any time</option><option value="24h">Last 24 hours</option><option value="3d">Last 3 days</option><option value="1w">Last week</option><option value="older">Over a week</option></select></div>\
+        <div class="jobs-filter-group"><label>Date Posted</label><select id="filterPostedSince" class="jobs-filter-select"><option value="all">Any time</option><option value="24h">Last 24 hours</option><option value="3d">Last 3 days</option><option value="1w" selected>Last week</option><option value="older">Over a week</option></select></div>\
         <div class="jobs-filter-group"><label>Match</label><select id="filterMatch" class="jobs-filter-select"><option value="0-100">All</option><option value="75-100">75%+</option><option value="50-75">50-75%</option><option value="0-50"><50%</option></select></div>\
         <div class="jobs-filter-group"><label>Source</label><select id="filterSource" class="jobs-filter-select"><option value="all">All</option></select></div>\
         <div class="jobs-filter-group"><label class="jobs-cv-toggle"><input type="checkbox" id="cvCompareToggle" /> CV Compare</label></div>\

@@ -83,6 +83,34 @@ for kw in KEYWORDS_SCORE_20:
 for kw in KEYWORDS_EXCLUDE:
     KEYWORD_SCORES[kw] = -50
 
+# ── Title must contain at least one of these to be included ──
+TITLE_REQUIRED_TERMS = [
+    "marketing operations",
+    "marketing analyst",
+    "marketing data analyst",
+    "ai marketing specialist",
+    "gtm engineer",
+    "gtm strategy & operations",
+    "gtm execution",
+    "revenue operations",
+    "revops",
+    "revenue ai & automation",
+    "data ops & reporting",
+    "operations & automation",
+    "marketing automation",
+    "go-to-market engineer",
+    "martech",
+    "marketing technology",
+    "marketing program & enablement",
+    "marketing analytics",
+    "lead",
+    "data analyst",
+    "go-to-market technology",
+    "business automation",
+    "agentops",
+    "sales operations",
+]
+
 # ── Desired skills (for CV skills matching) ──
 # Expanded with user's actual skills
 DESIRED_SKILLS = [
@@ -176,10 +204,131 @@ try:
     ADZUNA_APP_ID = os.getenv("ADZUNA_APP_ID", "")
     ADZUNA_API_KEY = os.getenv("ADZUNA_API_KEY", "")
     SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY", "")
+    JOOBLE_API_KEY = os.getenv("JOOBLE_API_KEY", "")
+    CAREERJET_API_KEY = os.getenv("CAREERJET_API_KEY", "")
+    APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN", "")
 except ImportError:
     ADZUNA_APP_ID = ""
     ADZUNA_API_KEY = ""
     SERPAPI_API_KEY = ""
+    JOOBLE_API_KEY = ""
+    CAREERJET_API_KEY = ""
+    APIFY_API_TOKEN = ""
 
 # How often to re-scan in minutes
 SCAN_INTERVAL_MINUTES = 60
+
+# Only keep roles posted within this many days
+MAX_POSTED_AGE_DAYS = 7
+
+# Tracker target companies (name -> website). Used for ATS boards and company_url.
+TARGET_COMPANY_SITES = {
+    "6sense": "https://6sense.com",
+    "9fin": "https://9fin.com",
+    "Access Group": "https://www.theaccessgroup.com",
+    "Advanced": "https://www.oneadvanced.com",
+    "Adyen": "https://www.adyen.com",
+    "Aircall": "https://aircall.io",
+    "Airtable": "https://www.airtable.com",
+    "Airwallex": "https://www.airwallex.com",
+    "Algolia": "https://www.algolia.com",
+    "Amplitude": "https://amplitude.com",
+    "Asana": "https://asana.com",
+    "Aspen Technology": "https://www.aspentech.com",
+    "Atlassian": "https://www.atlassian.com",
+    "Braze": "https://www.braze.com",
+    "Camunda": "https://camunda.com",
+    "Causeway Technologies": "https://www.causeway.com",
+    "Checkout.com": "https://www.checkout.com",
+    "Circit": "https://www.circit.io",
+    "Clariness": "https://www.clariness.com",
+    "ClearBank": "https://clear.bank",
+    "ClickUp": "https://clickup.com",
+    "Cognism": "https://www.cognism.com",
+    "Confluent": "https://www.confluent.io",
+    "Contentful": "https://www.contentful.com",
+    "Contentsquare": "https://contentsquare.com",
+    "Culture Amp": "https://www.cultureamp.com",
+    "Databricks": "https://www.databricks.com",
+    "Datadog": "https://www.datadoghq.com",
+    "Deel": "https://www.deel.com",
+    "DeepL": "https://www.deepl.com",
+    "Demandbase": "https://www.demandbase.com",
+    "DocuSign": "https://www.docusign.com",
+    "Dojo": "https://dojo.tech",
+    "Dropbox": "https://www.dropbox.com",
+    "Elastic": "https://www.elastic.co",
+    "F5": "https://www.f5.com",
+    "Figma": "https://www.figma.com",
+    "Fivetran": "https://www.fivetran.com",
+    "Flexera": "https://www.flexera.com",
+    "FreeAgent": "https://www.freeagent.com",
+    "Front": "https://front.com",
+    "Frontify": "https://www.frontify.com",
+    "GitLab": "https://about.gitlab.com",
+    "GoCardless": "https://gocardless.com",
+    "Gong": "https://www.gong.io",
+    "HiBob": "https://www.hibob.com",
+    "Hightouch": "https://hightouch.com",
+    "HubSpot": "https://www.hubspot.com",
+    "Intercom": "https://www.intercom.com",
+    "IRIS Software Group": "https://www.iris.co.uk",
+    "Iterable": "https://iterable.com",
+    "Keystone Education Group": "https://www.keg.com",
+    "Klaviyo": "https://www.klaviyo.com",
+    "Lattice": "https://lattice.com",
+    "LeanData": "https://www.leandata.com",
+    "Lucanet": "https://www.lucanet.com",
+    "Luminance": "https://www.luminance.com",
+    "Macrobond": "https://www.macrobond.com",
+    "Miro": "https://miro.com",
+    "monday.com": "https://monday.com",
+    "MongoDB": "https://www.mongodb.com",
+    "Multiverse": "https://www.multiverse.io",
+    "Notion": "https://www.notion.so",
+    "OakNorth": "https://www.oaknorth.com",
+    "Octopus Deploy": "https://octopus.com",
+    "Paddle": "https://www.paddle.com",
+    "Pendo": "https://www.pendo.io",
+    "Pennylane": "https://www.pennylane.com",
+    "Personetics": "https://personetics.com",
+    "Personio": "https://www.personio.com",
+    "Plaid": "https://plaid.com",
+    "Pleo": "https://www.pleo.io",
+    "PolyAI": "https://poly.ai",
+    "Qonto": "https://qonto.com",
+    "Quantexa": "https://www.quantexa.com",
+    "Recurly": "https://recurly.com",
+    "Remote": "https://remote.com",
+    "Sage": "https://www.sage.com",
+    "Sentry": "https://sentry.io",
+    "Siteimprove": "https://www.siteimprove.com",
+    "Snowflake": "https://www.snowflake.com",
+    "Soldo": "https://www.soldo.com",
+    "Stripe": "https://stripe.com",
+    "Synthesia": "https://www.synthesia.io",
+    "Thought Machine": "https://www.thoughtmachine.net",
+    "Tide": "https://www.tide.co",
+    "Transfer Room": "https://www.transferroom.com",
+    "TrueLayer": "https://truelayer.com",
+    "Trustpilot": "https://www.trustpilot.com",
+    "Twilio": "https://www.twilio.com",
+    "Typeform": "https://www.typeform.com",
+    "Unit4": "https://www.unit4.com",
+    "Vertice": "https://www.vertice.one",
+    "Wise": "https://wise.com",
+    "Workato": "https://www.workato.com",
+    "Xero": "https://www.xero.com",
+    "YOOBIC": "https://www.yoobic.com",
+    "Zapier": "https://zapier.com",
+    "Zendesk": "https://www.zendesk.com",
+}
+
+TARGET_COMPANY_LOOKUP = {name.lower(): (name, url) for name, url in TARGET_COMPANY_SITES.items()}
+
+
+def target_company_url(company: str) -> str | None:
+    if not company:
+        return None
+    hit = TARGET_COMPANY_LOOKUP.get(company.strip().lower())
+    return hit[1] if hit else None
