@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import re
+import threading
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Optional
@@ -31,6 +32,32 @@ logger = logging.getLogger(__name__)
 # ── in-memory cache ──
 cached_jobs: list[JobPosting] = []
 last_scrape_time: Optional[datetime] = None
+scrape_lock = threading.Lock()
+scrape_running = False
+
+
+def _run_scrape() -> int:
+    global cached_jobs, last_scrape_time, scrape_running
+    with scrape_lock:
+        scrape_running = True
+        try:
+            raw = scrape_all()
+            cached_jobs = drop_stale_jobs(filter_and_rank(raw))
+            last_scrape_time = datetime.now(timezone.utc)
+            logger.info(f"Scrape complete: {len(cached_jobs)} matching jobs")
+            return len(cached_jobs)
+        except Exception as e:
+            logger.error(f"Scrape failed: {e}")
+            raise
+        finally:
+            scrape_running = False
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting API; initial scrape running in background")
+    threading.Thread(target=_run_scrape, name="initial-scrape", daemon=True).start()
+    yield
 
 # ── CV / profile data ──
 cv_text: str = ""
@@ -119,21 +146,6 @@ class ProfileResponse(BaseModel):
     skills: list[str]
     skill_count: int
     uploaded_at: str
-
-
-# ── lifespan ──
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    global cached_jobs, last_scrape_time
-    logger.info("Starting initial scrape...")
-    try:
-        raw = scrape_all()
-        cached_jobs = drop_stale_jobs(filter_and_rank(raw))
-        last_scrape_time = datetime.now()
-        logger.info(f"Initial scrape complete: {len(cached_jobs)} matching jobs")
-    except Exception as e:
-        logger.error(f"Initial scrape failed: {e}")
-    yield
 
 
 # ── app ──
@@ -426,15 +438,12 @@ def get_stats():
 
 @app.post("/api/scrape", response_model=ScrapeResponse)
 def trigger_scrape():
-    global cached_jobs, last_scrape_time
     try:
-        raw = scrape_all()
-        cached_jobs = drop_stale_jobs(filter_and_rank(raw))
-        last_scrape_time = datetime.now()
+        count = _run_scrape()
         return ScrapeResponse(
             status="ok",
-            jobs_found=len(cached_jobs),
-            message=f"Scraped {len(raw)} raw jobs -> {len(cached_jobs)} matches",
+            jobs_found=count,
+            message=f"{count} matches after last-week filter",
         )
     except Exception as e:
         logger.error(f"Scrape failed: {e}")
@@ -543,6 +552,7 @@ def health():
         "status": "ok",
         "cached_jobs": len(cached_jobs),
         "last_scrape": last_scrape_time.isoformat() if last_scrape_time else None,
+        "scrape_running": scrape_running,
     }
 
 
