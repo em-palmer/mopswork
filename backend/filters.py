@@ -315,7 +315,19 @@ def score_job(job: JobPosting) -> float:
         "warminster", "frome", "devizes", "melksham", "westbury",
     ]
     if wt == "hybrid":
-        if not any(c in loc_lower for c in hybrid_cities):
+        if any(c in loc_lower for c in hybrid_cities):
+            pass
+        elif any(label in loc_lower for label in (
+            "united kingdom", "great britain", "england", "uk", "remote",
+        )) and not any(
+            w in loc_lower for w in uk_words
+            if w not in (
+                "united kingdom", "great britain", "england", "scotland",
+                "wales", "northern ireland",
+            )
+        ):
+            pass
+        else:
             return 0.0
 
     score = 0.0

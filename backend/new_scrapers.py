@@ -935,7 +935,7 @@ WATCHLIST_JOBS = [
     {
         "title": "Marketing Analyst",
         "company": "Lucanet",
-        "location": "United Kingdom",
+        "location": "London, United Kingdom",
         "url": "https://www.linkedin.com/jobs/view/4464655756/",
         "source": "LinkedIn",
         "description": (
