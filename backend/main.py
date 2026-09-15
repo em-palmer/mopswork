@@ -146,6 +146,15 @@ class ProfileResponse(BaseModel):
     skills: list[str]
     skill_count: int
     uploaded_at: str
+    text: str = ""
+    has_cv: bool = False
+
+
+class ProfileRestore(BaseModel):
+    name: str = ""
+    text: str
+    skills: list[str] = []
+    filename: str = ""
 
 
 # ── app ──
@@ -572,18 +581,43 @@ def upload_cv(file: UploadFile = File(...), name: str = Form("")):
         skills=skills,
         skill_count=len(skills),
         uploaded_at=datetime.now().isoformat(),
+        text=cv_text,
+        has_cv=True,
+    )
+
+
+@app.post("/api/profile/restore", response_model=ProfileResponse)
+def restore_profile(body: ProfileRestore):
+    """Restore a CV from the browser copy after Render restarts."""
+    global cv_text, cv_skills, profile_name
+    if not (body.text or "").strip():
+        return get_profile_response()
+    cv_text = body.text
+    cv_skills = body.skills or []
+    profile_name = body.name or body.filename or profile_name
+    try:
+        with open(CV_FILE, "w") as f:
+            json.dump({"text": cv_text, "skills": cv_skills, "name": profile_name}, f)
+    except Exception:
+        pass
+    return get_profile_response()
+
+
+def get_profile_response() -> ProfileResponse:
+    return ProfileResponse(
+        name=profile_name,
+        filename=profile_name,
+        skills=cv_skills,
+        skill_count=len(cv_skills),
+        uploaded_at=datetime.now().isoformat(),
+        text=cv_text,
+        has_cv=bool(cv_text),
     )
 
 
 @app.get("/api/profile")
 def get_profile():
-    return {
-        "name": profile_name,
-        "has_cv": bool(cv_text),
-        "skills": cv_skills,
-        "skill_count": len(cv_skills),
-        "text_length": len(cv_text),
-    }
+    return get_profile_response()
 
 
 @app.delete("/api/profile")

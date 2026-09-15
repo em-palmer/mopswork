@@ -374,6 +374,31 @@
 
   var CV_DB = "mopswork_cv";
   var CV_META_KEY = "mopswork_cv_name";
+  var CV_SNAP_KEY = "mopswork_cv_snap";
+
+  function saveCvSnapshot(p) {
+    if (!p || !(p.text || p.has_cv)) return;
+    var snap = {
+      name: p.name || "",
+      filename: p.filename || p.name || "",
+      skills: p.skills || [],
+      text: p.text || "",
+    };
+    try { localStorage.setItem(CV_META_KEY, snap.name || snap.filename); } catch (e) {}
+    try { localStorage.setItem(CV_SNAP_KEY, JSON.stringify(snap)); } catch (e) {}
+  }
+
+  function loadCvSnapshot() {
+    try {
+      var raw = localStorage.getItem(CV_SNAP_KEY);
+      if (!raw) return null;
+      var snap = JSON.parse(raw);
+      if (!snap || !snap.text) return null;
+      return snap;
+    } catch (e) {
+      return null;
+    }
+  }
 
   function openCvDb() {
     return new Promise(function(resolve, reject) {
@@ -414,7 +439,7 @@
   }
 
   async function clearCvLocal() {
-    try { localStorage.removeItem(CV_META_KEY); } catch (e) {}
+    try { localStorage.removeItem(CV_META_KEY); localStorage.removeItem(CV_SNAP_KEY); } catch (e) {}
     try {
       var db = await openCvDb();
       await new Promise(function(resolve, reject) {
@@ -446,22 +471,38 @@
 
   async function fetchProfile() {
     try {
+      var snap = loadCvSnapshot();
+      if (snap && snap.text) {
+        try {
+          var rr = await fetch(API_BASE + "/api/profile/restore", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: snap.name || "",
+              filename: snap.filename || "",
+              text: snap.text,
+              skills: snap.skills || [],
+            }),
+          });
+          if (rr.ok) {
+            profile = await rr.json();
+            saveCvSnapshot(profile);
+            updateProfileUI();
+            return;
+          }
+        } catch (e) {}
+      }
+      var local = await loadCvLocal();
+      if (local && local.file) {
+        profile = await postCv(local.file, local.name);
+        saveCvSnapshot(profile);
+        updateProfileUI();
+        return;
+      }
       const r = await fetch(API_BASE + "/api/profile");
       if (!r.ok) return;
       profile = await r.json();
-      var wanted = "";
-      try { wanted = localStorage.getItem(CV_META_KEY) || ""; } catch (e) {}
-      if (wanted && profile && profile.name && profile.name !== wanted) {
-        var local = await loadCvLocal();
-        if (local && local.file) {
-          profile = await postCv(local.file, local.name || wanted);
-        }
-      } else if (wanted && (!profile || !profile.has_cv)) {
-        var local2 = await loadCvLocal();
-        if (local2 && local2.file) {
-          profile = await postCv(local2.file, local2.name || wanted);
-        }
-      }
+      if (profile && profile.text) saveCvSnapshot(profile);
       updateProfileUI();
     } catch {}
   }
@@ -471,10 +512,11 @@
     await saveCvLocal(file, label);
     try {
       profile = await postCv(file, label);
+      saveCvSnapshot(profile);
       updateProfileUI();
       if (cvCompareToggle) cvCompareToggle.checked = true;
       fetchJobs();
-    } catch (e) { console.error(e); alert("CV upload failed. The September file is saved in this browser and will retry when the API is awake."); }
+    } catch (e) { console.error(e); alert("CV upload failed. The file is saved in this browser and will be restored when the API is awake."); }
   }
 
   async function deleteProfile() {
@@ -693,7 +735,9 @@
 
     window.__jobsTriggerScrape = triggerScrape;
     replayDismissedToServer().then(function() {
-      fetchSources(); fetchProfile(); fetchStats(); fetchJobs();
+      return fetchProfile();
+    }).then(function() {
+      fetchSources(); fetchStats(); fetchJobs();
     });
   }
 
