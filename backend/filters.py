@@ -5,6 +5,7 @@ Job filtering and scoring engine — max score is 100.
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from typing import Optional
 
 from backend.config import (
@@ -161,6 +162,13 @@ def parse_posted_date(value: Optional[str]) -> Optional[datetime]:
             dt = dt.replace(tzinfo=timezone.utc)
         return dt
     except ValueError:
+        pass
+    try:
+        dt = parsedate_to_datetime(s)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except (TypeError, ValueError, OverflowError):
         pass
     months = {
         "jan": 1, "january": 1, "feb": 2, "february": 2, "mar": 3, "march": 3,

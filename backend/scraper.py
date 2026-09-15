@@ -6,15 +6,20 @@ Each source returns a list of JobPosting objects.
 import re
 import json
 import logging
+import time
 import urllib.parse
 from typing import Optional
+from xml.etree import ElementTree as ET
 
 import httpx
 from bs4 import BeautifulSoup
 
 from backend.filters import JobPosting
-from backend.new_scrapers import scrape_new_sources
-from backend.config import ADZUNA_APP_ID, ADZUNA_API_KEY, JOOBLE_API_KEY, CAREERJET_API_KEY, target_company_url
+from backend.config import (
+    ADZUNA_APP_ID, ADZUNA_API_KEY, JOOBLE_API_KEY, CAREERJET_API_KEY,
+    target_company_url, TARGET_COMPANY_SITES,
+)
+from backend.new_scrapers import scrape_new_sources, GREENHOUSE_BOARDS, LEVER_BOARDS, ASHBY_BOARDS
 
 logger = logging.getLogger(__name__)
 
@@ -62,67 +67,83 @@ def detect_work_type_from_text(title: str, description: str, location: str) -> s
 
 # ---------- Source 1: Adzuna API (UK) ----------
 
+BOARD_QUERIES = [
+    "marketing operations",
+    "revenue operations",
+    "revops",
+    "marketing automation",
+    "martech",
+    "gtm engineer",
+    "marketing analytics",
+    "data operations",
+    "sales operations",
+]
+
+
 def scrape_adzuna() -> list[JobPosting]:
     jobs: list[JobPosting] = []
     app_id = ADZUNA_APP_ID
     api_key = ADZUNA_API_KEY
     if not app_id or not api_key:
-        logger.info("Adzuna: no API keys configured, skipping")
+        logger.warning("Adzuna: no API keys configured, skipping (set ADZUNA_APP_ID and ADZUNA_API_KEY on Render)")
         return jobs
 
-    queries = [
-        "marketing+operations", "revenue+operations", "revops", "marketing+automation",
-        "martech", "marketing+analytics", "data+operations", "gtm+engineer",
-        "revenue+ai", "business+automation", "marketing+data+analyst",
-    ]
-
+    seen = set()
     with httpx.Client(timeout=20.0) as client:
-        for q in queries:
-            try:
-                url = (
-                    f"https://api.adzuna.com/v1/api/jobs/gb/search/1"
-                    f"?app_id={app_id}&app_key={api_key}"
-                    f"&what={q}&results_per_page=50&content-type=application/json"
-                    f"&full_time=1&permanent=1&sort_by=date"
-                )
-                resp = client.get(url, headers={"Accept": "application/json"})
-                if resp.status_code != 200:
-                    logger.warning(f"Adzuna returned {resp.status_code} for q={q}")
-                    continue
-                data = resp.json()
-                for raw in data.get("results", []):
-                    title = raw.get("title", "")
-                    if not title:
-                        continue
-                    company = raw.get("company", {}).get("display_name", "Unknown")
-                    location = raw.get("location", {}).get("display_name", "") or raw.get("location", "")
-                    description = raw.get("description", "")[:2000]
-                    salary_min = raw.get("salary_min")
-                    salary_max = raw.get("salary_max")
-                    salary_str = None
-                    if salary_min or salary_max:
-                        lo = int(salary_min) if salary_min else None
-                        hi = int(salary_max) if salary_max else None
-                        if lo and hi:
-                            salary_str = f"£{lo:,} - £{hi:,}"
-                        elif lo:
-                            salary_str = f"£{lo:,}"
+        for q in BOARD_QUERIES:
+            for page in (1, 2, 3):
+                try:
+                    url = (
+                        f"https://api.adzuna.com/v1/api/jobs/gb/search/{page}"
+                        f"?app_id={app_id}&app_key={api_key}"
+                        f"&what={urllib.parse.quote_plus(q)}"
+                        f"&results_per_page=50&content-type=application/json"
+                        f"&sort_by=date&max_days_old=7"
+                    )
+                    resp = client.get(url, headers={"Accept": "application/json"})
+                    if resp.status_code != 200:
+                        logger.warning(f"Adzuna returned {resp.status_code} for q={q} page={page}")
+                        break
+                    data = resp.json()
+                    results = data.get("results") or []
+                    if not results:
+                        break
+                    for raw in results:
+                        title = raw.get("title", "")
+                        if not title:
+                            continue
+                        company = (raw.get("company") or {}).get("display_name", "Unknown")
+                        key = (title.strip().lower(), company.strip().lower())
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        location = (raw.get("location") or {}).get("display_name", "") or ""
+                        description = (raw.get("description") or "")[:2000]
+                        salary_min = raw.get("salary_min")
+                        salary_max = raw.get("salary_max")
+                        salary_str = None
+                        if salary_min or salary_max:
+                            lo = int(salary_min) if salary_min else None
+                            hi = int(salary_max) if salary_max else None
+                            if lo and hi:
+                                salary_str = f"£{lo:,} - £{hi:,}"
+                            elif lo:
+                                salary_str = f"£{lo:,}"
+                        jobs.append(JobPosting(
+                            title=title, company=company,
+                            location=location, country="UK",
+                            description=description, url=raw.get("redirect_url", ""),
+                            source="Adzuna", salary=salary_str,
+                            posted_date=raw.get("created"),
+                            work_type=detect_work_type_from_text(title, description, location),
+                            company_url=target_company_url(company),
+                        ))
+                    logger.info(f"  Adzuna q={q} page={page}: {len(results)} jobs")
+                except Exception as e:
+                    logger.warning(f"Adzuna error for q={q} page={page}: {e}")
+                    break
 
-                    country = "UK"
-                    posted = raw.get("created")
-
-                    jobs.append(JobPosting(
-                        title=title, company=company,
-                        location=location, country=country,
-                        description=description, url=raw.get("redirect_url", ""),
-                        source="Adzuna", salary=salary_str,
-                        posted_date=posted,
-                        work_type=detect_work_type_from_text(title, description, location),
-                    ))
-                logger.info(f"  Adzuna q={q}: found {len(data.get('results', []))} jobs")
-            except Exception as e:
-                logger.warning(f"Adzuna error for q={q}: {e}")
-
+    logger.info(f"  Adzuna total: {len(jobs)} unique jobs")
     return jobs
 
 
@@ -294,108 +315,85 @@ def scrape_careerjet() -> list[JobPosting]:
 # ---------- Source 5: Improved LinkedIn Guest API with better reliability ----------
 
 def scrape_linkedin() -> list[JobPosting]:
+    """LinkedIn guest job search, last 7 days, UK."""
     jobs: list[JobPosting] = []
-    queries = [
-        "marketing operations", "revenue operations", "revops",
-        "marketing automation", "martech", "gtm engineer",
-        "marketing analytics", "data operations", "business automation",
-    ]
+    ats_covered = set(GREENHOUSE_BOARDS) | set(LEVER_BOARDS) | set(ASHBY_BOARDS)
     company_queries = [
-        "memoryBlue", "LexisNexis", "Exclaimer", "Poka", "Improvado",
+        name for name in TARGET_COMPANY_SITES
+        if name not in ats_covered
     ]
-
+    searches = [(q, 50) for q in BOARD_QUERIES] + [(name, 25) for name in company_queries]
     seen_urls = set()
 
     with httpx.Client(timeout=25.0, follow_redirects=True) as client:
-        all_search_terms = queries + company_queries
-        for q in all_search_terms:
-            for start in range(0, 50, 25):
+        for q, max_start in searches:
+            for start in range(0, max_start, 25):
                 try:
                     url = (
                         "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
                         f"?keywords={urllib.parse.quote(q)}"
                         f"&location=United%20Kingdom"
-                        f"&f_WT=2,3"
+                        f"&f_TPR=r604800"
+                        f"&sortBy=DD"
                         f"&start={start}"
                     )
                     resp = client.get(url, headers={
                         "User-Agent": USER_AGENT,
                         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                         "Accept-Language": "en-GB,en;q=0.9",
-                        "Referer": "https://www.linkedin.com/jobs/",
-                        "Cache-Control": "no-cache",
+                        "Referer": "https://uk.linkedin.com/jobs",
                     })
                     if resp.status_code != 200:
                         logger.warning(f"LinkedIn returned {resp.status_code} for q={q}, start={start}")
-                        continue
+                        break
 
                     soup = BeautifulSoup(resp.text, "lxml")
+                    cards = soup.select("div.base-card, div.base-search-card")
+                    if not cards:
+                        break
                     cards_found = 0
-
-                    for card in soup.find_all("li"):
-                        link_el = card.find("a", href=True)
-                        if not link_el:
+                    for card in cards:
+                        link_el = card.select_one("a.base-card__full-link, a[href*='/jobs/view/']")
+                        if not link_el or not link_el.get("href"):
                             continue
-                        href = link_el["href"]
-                        if not href.startswith("https://") or "/jobs/view/" not in href:
-                            continue
+                        href = link_el["href"].split("?")[0]
                         if href in seen_urls:
                             continue
                         seen_urls.add(href)
                         cards_found += 1
 
-                        full_text = card.get_text(" ", strip=True)
-                        title = link_el.get_text(strip=True)
+                        title_el = card.select_one("h3.base-search-card__title, h3")
+                        title = title_el.get_text(strip=True) if title_el else link_el.get_text(strip=True)
                         if not title or len(title) < 5:
                             continue
-
-                        # Extract company
-                        company = "Unknown"
-                        for tag in card.find_all(["h4", "span", "p", "div"]):
-                            cls = " ".join(tag.get("class", [])) if tag.get("class") else ""
-                            if any(x in cls.lower() for x in ["company", "subtitle", "employer"]):
-                                company = tag.get_text(strip=True)
-                                break
-                        if company == "Unknown":
-                            parts = full_text.split("·")
-                            for part in parts:
-                                pt = part.strip()
-                                if pt and pt != title and len(pt) < 60 and not any(
-                                    c in pt.lower() for c in
-                                    ["hour", "day", "week", "month", "ago", "apply", "active",
-                                     "be an early", "actively hiring"]
-                                ):
-                                    company = pt
-                                    break
-
-                        # Location
-                        location = "UK"
-                        for tag in card.find_all(["span", "div", "p", "small"]):
-                            cls = " ".join(tag.get("class", [])) if tag.get("class") else ""
-                            if "location" in cls.lower():
-                                location = tag.get_text(strip=True)
-                                break
-                        if location == "UK":
-                            loc_match = re.search(r'·\s*(.+?)\s*·', full_text)
-                            if loc_match:
-                                candidate = loc_match.group(1).strip()
-                                if candidate and len(candidate) < 80 and "linkedin" not in candidate.lower():
-                                    location = candidate
+                        company_el = card.select_one("h4.base-search-card__subtitle, h4")
+                        company = company_el.get_text(strip=True) if company_el else "Unknown"
+                        loc_el = card.select_one("span.job-search-card__location")
+                        location = loc_el.get_text(strip=True) if loc_el else "United Kingdom"
+                        time_el = card.select_one("time")
+                        posted = time_el.get("datetime") if time_el else None
+                        if not posted and time_el:
+                            posted = time_el.get_text(strip=True)
+                        full_text = card.get_text(" ", strip=True)
 
                         jobs.append(JobPosting(
                             title=title, company=company,
                             location=location, country="UK",
                             description=full_text[:1000], url=href,
                             source="LinkedIn",
+                            posted_date=posted,
                             work_type=detect_work_type_from_text(title, full_text, location),
+                            company_url=target_company_url(company),
                         ))
 
                     logger.info(f"  LinkedIn q={q}, start={start}: {cards_found} cards")
-
+                    if cards_found == 0:
+                        break
+                    time.sleep(0.35)
                 except Exception as e:
                     logger.warning(f"LinkedIn error for q={q}, start={start}: {e}")
+                    break
 
-    # Deduplicate
     seen = set()
     unique = []
     for j in jobs:
@@ -403,7 +401,6 @@ def scrape_linkedin() -> list[JobPosting]:
         if key not in seen:
             seen.add(key)
             unique.append(j)
-
     logger.info(f"  LinkedIn total: {len(unique)} unique jobs")
     return unique
 
@@ -596,111 +593,75 @@ def scrape_google_jobs() -> list[JobPosting]:
 # ---------- Source 9: RevOps Roles (SSR scrape) ----------
 
 def scrape_revops_roles() -> list[JobPosting]:
+    """RevOps Roles JSON API — UK/London, dates from posted_at."""
     jobs: list[JobPosting] = []
-    urls = [
-        "https://revopsroles.com/?location=united-kingdom",
-        "https://revopsroles.com/remote-jobs",
-    ]
-
-    seen_urls = set()
+    seen_ids = set()
 
     with httpx.Client(timeout=25.0, follow_redirects=True) as client:
-        for url in urls:
-            try:
-                resp = client.get(url, headers=HEADERS)
-                if resp.status_code != 200:
-                    logger.warning(f"RevOpsRoles returned {resp.status_code} for {url}")
-                    continue
-
-                soup = BeautifulSoup(resp.text, "lxml")
-
-                for li in soup.select("li.job-row, li[class*=job]"):
-                    link_el = li.find("a", href=True)
-                    if not link_el:
-                        continue
-                    href = link_el["href"]
-                    if not href.startswith("http"):
-                        href = "https://revopsroles.com" + href
-                    if href in seen_urls:
-                        continue
-                    seen_urls.add(href)
-
-                    title_el = li.select_one("[class*=font-extrabold]")
-                    if not title_el:
-                        continue
-                    title = title_el.get_text(strip=True)
-
-                    full_text = li.get_text(" ", strip=True)
-
-                    company = "Unknown"
-                    company_match = re.search(rf'{re.escape(title)}\s*(.+?)\s*·', full_text)
-                    if company_match:
-                        company = company_match.group(1).strip()
-
-                    location = "Remote"
-                    loc_match = re.search(r'·\s*(.+?)\s*·', full_text)
-                    if loc_match:
-                        location = loc_match.group(1).strip()
-
-                    level = "Unknown"
-                    level_match = re.search(r'·\s*(Senior|Mid|Junior|Director|Lead|Principal)', full_text)
-                    if level_match:
-                        level = level_match.group(1)
-
-                    salary = None
-                    salary_match = re.search(r'(\$[\d,]+k?\s*–\s*\$?[\d,]+k?|£[\d,]+k?\s*–\s*£?[\d,]+k?)', full_text)
-                    if salary_match:
-                        salary = salary_match.group(1)
-
-                    category = ""
-                    cat_match = re.search(r'·\s*(RevOps|Marketing Ops|Sales Ops|GTM Engineering|CS Ops|Deal Desk|Enablement|GTM Strategy|CRM Administration)', full_text)
-                    if cat_match:
-                        category = cat_match.group(1)
-
-                    country = "Worldwide"
-                    loc_lower = location.lower()
-                    if "united kingdom" in loc_lower or "uk" in loc_lower or "london" in loc_lower or "england" in loc_lower:
-                        country = "UK"
-                    elif any(c in loc_lower for c in ["united states", "usa", "new york", "san francisco"]):
-                        country = "US"
-
-                    description = f"{category} role. Level: {level}. Location: {location}. {full_text[:500]}"
-
-                    is_remote = "remote" in loc_lower or "remote" in url
-
-                    company_url = None  # RevOpsRoles doesn't expose company URLs in listing
-
-                    jobs.append(JobPosting(
-                        title=title,
-                        company=company,
-                        location=location,
-                        country=country,
-                        description=description,
-                        url=href,
-                        source="RevOpsRoles",
-                        salary=salary,
-                        work_type="Remote" if is_remote else "On-site",
-                        company_url=company_url,
-                    ))
-
-                    if len(jobs) >= 100:
+        for q in ("united kingdom", "london"):
+            for page in range(1, 5):
+                try:
+                    url = (
+                        "https://revopsroles.com/api/jobs"
+                        f"?q={urllib.parse.quote(q)}&hitsPerPage=50&page={page}"
+                    )
+                    resp = client.get(url, headers={**HEADERS, "Accept": "application/json"})
+                    if resp.status_code != 200:
+                        logger.warning(f"RevOpsRoles API returned {resp.status_code} for q={q} page={page}")
                         break
+                    data = resp.json() or {}
+                    hits = data.get("hits") or []
+                    if not hits:
+                        break
+                    for raw in hits:
+                        job_id = raw.get("id")
+                        if job_id in seen_ids:
+                            continue
+                        seen_ids.add(job_id)
+                        title = (raw.get("title") or "").strip()
+                        if not title:
+                            continue
+                        company = raw.get("company_name") or "Unknown"
+                        location = raw.get("location_raw") or raw.get("location_city") or "Remote"
+                        countries = [c.lower() for c in (raw.get("location_countries") or []) if c]
+                        country_code = (raw.get("location_country") or "").upper()
+                        loc_l = str(location).lower()
+                        if country_code in ("GB", "UK") or "gb" in countries or "uk" in loc_l or "united kingdom" in loc_l or "london" in loc_l:
+                            country = "UK"
+                        else:
+                            country = "Worldwide"
+                        salary = None
+                        lo, hi = raw.get("salary_min"), raw.get("salary_max")
+                        cur = raw.get("salary_currency") or "GBP"
+                        if lo or hi:
+                            salary = f"{cur} {int(lo) if lo else ''}-{int(hi) if hi else ''}".strip("- ")
+                        posted = raw.get("posted_at") or raw.get("created_at")
+                        if posted is not None:
+                            posted = str(posted)
+                        href = raw.get("source_url") or f"https://revopsroles.com/jobs/{job_id}"
+                        desc = f"{raw.get('category') or ''} role. {title} at {company}. Location: {location}."
+                        jobs.append(JobPosting(
+                            title=title,
+                            company=company,
+                            location=str(location),
+                            country=country,
+                            description=desc,
+                            url=href,
+                            source="RevOpsRoles",
+                            salary=salary,
+                            posted_date=posted,
+                            work_type=(raw.get("work_mode") or "On-site").title(),
+                            company_url=raw.get("company_website_url") or target_company_url(company),
+                        ))
+                    logger.info(f"  RevOpsRoles q={q} page={page}: {len(hits)} hits")
+                    if page >= int(data.get("totalPages") or 1):
+                        break
+                except Exception as e:
+                    logger.warning(f"RevOpsRoles error q={q} page={page}: {e}")
+                    break
 
-                logger.info(f"  -> RevOpsRoles {url}: {len(jobs)} jobs so far")
-
-            except Exception as e:
-                logger.warning(f"RevOpsRoles error: {e}")
-
-    seen = set()
-    unique = []
-    for j in jobs:
-        key = (j.title.lower(), j.company.lower())
-        if key not in seen:
-            seen.add(key)
-            unique.append(j)
-
-    logger.info(f"  -> RevOpsRoles total: {len(unique)} unique jobs")
-    return unique
+    logger.info(f"  RevOpsRoles total: {len(jobs)} unique jobs")
+    return jobs
 
 
 # ---------- Source 10: Welcome to the Jungle ----------
@@ -931,52 +892,166 @@ def scrape_reed() -> list[JobPosting]:
 # ---------- New scraper: Indeed UK (RSS feed) ----------
 
 def scrape_indeed_uk() -> list[JobPosting]:
-    """Indeed UK via search pages."""
+    """Indeed UK via RSS (HTML is usually blocked from datacentre IPs)."""
     jobs: list[JobPosting] = []
-    search_terms = [
-        ('marketing+operations', 'what=marketing+operations'),
-        ('revenue+operations', 'what=revenue+operations'),
-        ('marketing+automation', 'what=marketing+automation'),
-        ('revops', 'what=revops'),
-        ('martech', 'what=martech'),
-    ]
     seen = set()
-    for label, params in search_terms:
-        try:
-            url = f"https://uk.indeed.com/jobs?q={params}&l=United+Kingdom&sc=0kf%3Aattr%28DSQF7%29jt%28fulltime%29%3B&limit=10&sort=date"
-            resp = httpx.get(url, headers=HEADERS, timeout=15)
-            if resp.status_code != 200:
-                continue
-            soup = BeautifulSoup(resp.text, "html.parser")
-            cards = soup.select("div.job_seen_beacon, div.cardOutline, div[data-testid^='job-card']")
-            for card in cards[:20]:
-                title_el = card.select_one("h2 a, a.jcs-JobTitle, h2[class*='jobTitle'] a, a[data-jk]")
-                if not title_el:
+    rss_blocked = False
+
+    with httpx.Client(timeout=20.0, follow_redirects=True) as client:
+        for q in BOARD_QUERIES:
+            if rss_blocked:
+                break
+            try:
+                url = (
+                    "https://uk.indeed.com/rss"
+                    f"?q={urllib.parse.quote_plus(q)}"
+                    f"&l=United+Kingdom&sort=date&fromage=7"
+                )
+                resp = client.get(url, headers={**HEADERS, "Accept": "application/rss+xml, application/xml, text/xml"})
+                if resp.status_code in (403, 429):
+                    logger.warning(f"Indeed RSS blocked ({resp.status_code}); UK Indeed ads still come through Adzuna")
+                    rss_blocked = True
+                    break
+                if resp.status_code != 200 or "<rss" not in resp.text[:500].lower() and "<item>" not in resp.text.lower():
+                    logger.warning(f"Indeed RSS returned {resp.status_code} for q={q}")
                     continue
-                title = title_el.get_text(strip=True)
-                href = title_el.get("href", "")
-                if href and href.startswith("/"):
-                    href = "https://uk.indeed.com" + href
-                company_el = card.select_one("[data-testid='company-name'], span.companyName, .companyName, [class*='company']")
-                company = company_el.get_text(strip=True) if company_el else ""
-                loc_el = card.select_one("[data-testid='text-location'], div.companyLocation, [class*='location']")
-                location = loc_el.get_text(strip=True) if loc_el else "UK"
-                salary_el = card.select_one(".salary-snippet-container, [class*='salary'], div[id*='salary']")
-                salary = salary_el.get_text(strip=True) if salary_el else None
-                key = (title.lower(), company.lower())
-                if key in seen:
-                    continue
-                seen.add(key)
-                jobs.append(JobPosting(
-                    title=title, company=company,
-                    location=location, country="UK",
-                    description="", url=href,
-                    source="Indeed", salary=str(salary) if salary else None,
-                    posted_date=None, work_type=None,
-                ))
-        except Exception as e:
-            logger.warning(f"Indeed UK failed for q={label}: {e}")
+                root = ET.fromstring(resp.content)
+                for item in root.findall(".//item"):
+                    title = (item.findtext("title") or "").strip()
+                    href = (item.findtext("link") or "").strip()
+                    desc = (item.findtext("description") or "")
+                    posted = (item.findtext("pubDate") or "").strip() or None
+                    if not title:
+                        continue
+                    company = "Unknown"
+                    loc = "United Kingdom"
+                    m = re.search(r"(?:at| - )\s*([^<\n-]+)", desc)
+                    if m:
+                        company = m.group(1).strip()[:80]
+                    key = (title.lower(), company.lower(), href)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    jobs.append(JobPosting(
+                        title=title, company=company,
+                        location=loc, country="UK",
+                        description=re.sub(r"<[^>]+>", " ", desc)[:2000],
+                        url=href, source="Indeed",
+                        posted_date=posted,
+                        work_type=detect_work_type_from_text(title, desc, loc),
+                        company_url=target_company_url(company),
+                    ))
+                logger.info(f"  Indeed RSS q={q}: {len(jobs)} jobs so far")
+            except Exception as e:
+                logger.warning(f"Indeed UK failed for q={q}: {e}")
+
+        if not jobs:
+            for q in BOARD_QUERIES[:4]:
+                try:
+                    url = (
+                        "https://uk.indeed.com/jobs"
+                        f"?q={urllib.parse.quote_plus(q)}"
+                        f"&l=United+Kingdom&fromage=7&sort=date"
+                    )
+                    resp = client.get(url, headers=HEADERS)
+                    if resp.status_code != 200:
+                        logger.warning(f"Indeed HTML returned {resp.status_code} for q={q}")
+                        break
+                    soup = BeautifulSoup(resp.text, "html.parser")
+                    cards = soup.select("div.job_seen_beacon, div.cardOutline, div[data-testid^='slider_item']")
+                    for card in cards[:25]:
+                        title_el = card.select_one("h2 a, a.jcs-JobTitle, a[data-jk]")
+                        if not title_el:
+                            continue
+                        title = title_el.get_text(strip=True)
+                        href = title_el.get("href", "")
+                        if href.startswith("/"):
+                            href = "https://uk.indeed.com" + href
+                        company_el = card.select_one("[data-testid='company-name'], span.companyName")
+                        company = company_el.get_text(strip=True) if company_el else "Unknown"
+                        loc_el = card.select_one("[data-testid='text-location'], div.companyLocation")
+                        location = loc_el.get_text(strip=True) if loc_el else "UK"
+                        date_el = card.select_one("span.date, [data-testid='myJobsStateDate']")
+                        posted = date_el.get_text(strip=True) if date_el else None
+                        key = (title.lower(), company.lower())
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        jobs.append(JobPosting(
+                            title=title, company=company,
+                            location=location, country="UK",
+                            description="", url=href, source="Indeed",
+                            posted_date=posted,
+                            work_type=detect_work_type_from_text(title, "", location),
+                            company_url=target_company_url(company),
+                        ))
+                except Exception as e:
+                    logger.warning(f"Indeed HTML failed for q={q}: {e}")
+                    break
+
     logger.info(f"     IndeedUK: {len(jobs)} jobs found")
+    return jobs
+
+
+def scrape_cv_library() -> list[JobPosting]:
+    """CV-Library UK RSS search, last-week dates from pubDate."""
+    jobs: list[JobPosting] = []
+    seen = set()
+
+    with httpx.Client(timeout=20.0, follow_redirects=True) as client:
+        for q in BOARD_QUERIES:
+            for offset in (0, 25, 50):
+                try:
+                    url = (
+                        "https://www.cv-library.co.uk/cgi-bin/jobs.rss"
+                        f"?q={urllib.parse.quote_plus(q)}&geo=1&search=1&offset={offset}"
+                    )
+                    resp = client.get(url, headers={**HEADERS, "Accept": "application/rss+xml, application/xml"})
+                    if resp.status_code != 200:
+                        logger.warning(f"CV-Library RSS returned {resp.status_code} for q={q}")
+                        break
+                    root = ET.fromstring(resp.content)
+                    items = root.findall(".//item")
+                    if not items:
+                        break
+                    for item in items:
+                        raw_title = (item.findtext("title") or "").strip()
+                        href = (item.findtext("link") or item.findtext("guid") or "").strip()
+                        desc = item.findtext("description") or ""
+                        posted = (item.findtext("pubDate") or "").strip() or None
+                        if not raw_title:
+                            continue
+                        title, location = raw_title, "UK"
+                        if "," in raw_title:
+                            title, location = raw_title.rsplit(",", 1)
+                            title, location = title.strip(), location.strip() or "UK"
+                        company = "Unknown"
+                        lines = [ln.strip() for ln in re.sub(r"<[^>]+>", "\n", desc).splitlines() if ln.strip()]
+                        for ln in lines:
+                            if ln.lower() == title.lower() or ln.lower() == location.lower():
+                                continue
+                            if len(ln) < 80 and not ln.lower().startswith(("a ", "an ", "the ", "this ", "we ")):
+                                company = ln
+                                break
+                        key = (title.lower(), href)
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        jobs.append(JobPosting(
+                            title=title, company=company,
+                            location=location, country="UK",
+                            description=re.sub(r"<[^>]+>", " ", desc)[:2000],
+                            url=href, source="CV-Library",
+                            posted_date=posted,
+                            work_type=detect_work_type_from_text(title, desc, location),
+                            company_url=target_company_url(company),
+                        ))
+                    logger.info(f"  CV-Library q={q} offset={offset}: {len(items)} items")
+                except Exception as e:
+                    logger.warning(f"CV-Library error for q={q} offset={offset}: {e}")
+                    break
+
+    logger.info(f"  CV-Library total: {len(jobs)} unique jobs")
     return jobs
 
 
@@ -1190,24 +1265,24 @@ def scrape_all() -> list[JobPosting]:
     all_jobs: list[JobPosting] = []
 
     sources = [
-        # ── Tier 1: Reliable APIs (highest priority) ──
+        # ── UK boards Emma actually uses ──
         ("Adzuna", scrape_adzuna),
+        ("LinkedIn", scrape_linkedin),
+        ("RevOpsRoles", scrape_revops_roles),
+        ("IndeedUK", scrape_indeed_uk),
+        ("CVLibrary", scrape_cv_library),
+        # ── Other APIs ──
         ("Arbeitnow", scrape_arbeitnow),
         ("Jooble", scrape_jooble),
         ("Careerjet", scrape_careerjet),
-        ("LinkedIn", scrape_linkedin),
-        # ── Tier 2: Aggregator APIs ──
         ("WeWorkRemotely", scrape_we_work_remotely),
         ("RemoteOK", scrape_remote_ok),
         ("Jobicy", scrape_jobicy),
         ("Remotive", scrape_remotive),
         ("GoogleJobs", scrape_google_jobs),
-        ("RevOpsRoles", scrape_revops_roles),
         ("WTTJ", scrape_wttj),
         ("Jobgether", scrape_jobgether),
-        # ── Tier 3: UK job boards (HTML scrape, less reliable) ──
         ("Reed", scrape_reed),
-        ("IndeedUK", scrape_indeed_uk),
         ("CWJobs", scrape_cwjobs),
         ("TotalJobs", scrape_totaljobs),
     ]

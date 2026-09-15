@@ -94,6 +94,11 @@
     if (m) return new Date(now - parseInt(m[1], 10) * 86400000);
     m = sl.match(/^(\d+)\s+weeks?\s+ago$/);
     if (m) return new Date(now - parseInt(m[1], 10) * 7 * 86400000);
+    if (/^\d{10,13}$/.test(s)) {
+      var ts = parseInt(s, 10);
+      if (ts > 10000000000) ts = ts / 1000;
+      return new Date(ts * 1000);
+    }
     var iso = Date.parse(s);
     if (!isNaN(iso)) return new Date(iso);
     var months = {jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11};
@@ -384,7 +389,7 @@
         </table>\
       </div>\
       <div class="jobs-foot">\
-        <span class="jobs-foot-text">Powered by LinkedIn &middot; RevOpsRoles &middot; RemoteOK &middot; WeWorkRemotely &middot; Jobicy &middot; Adzuna</span>\
+        <span class="jobs-foot-text">Powered by LinkedIn &middot; RevOps Roles &middot; Indeed &middot; CV-Library &middot; Adzuna</span>\
         <span class="jobs-foot-text jobs-foot-updated" id="jobsUpdated"></span>\
       </div>\
     </div>';
