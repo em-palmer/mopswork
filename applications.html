@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" href="/MOPSHub/favicon.svg" type="image/svg+xml">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Applications — MOpsWork</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <script src="/static/api-config.js"></script>
+  <script src="/MOPSWork/static/api-config.js"></script>
+  <script src="/MOPSWork/static/tracker-store.js?v=1"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --color-bg: #f8f9fc; --color-surface: #ffffff; --color-surface-hover: #f0f2f8;
-      --color-border: #e2e5ef; --color-text: #1a1a2e; --color-text-muted: #6b7280;
-      --color-accent: #7c3aed; --color-accent-glow: rgba(124,58,237,0.25);
-      --color-accent-2: #06b6d4; --color-accent-3: #f43f5e; --color-success: #10b981;
-      --radius: 12px; --radius-lg: 20px;
+      --color-bg: #f5f7fa; --color-surface: #ffffff; --color-surface-hover: #eef0f2;
+      --color-border: #e9edf2; --color-text: #38444d; --color-text-muted: #64748b;
+      --color-accent: #00739c; --color-accent-red: #bf1a22; --color-dark: #38444d;
+      --color-success: #10b981;
+      --radius: 10px; --radius-lg: 12px;
       --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
     html { scroll-behavior: smooth; }
@@ -23,59 +25,93 @@
       font-family: var(--font); background: var(--color-bg); color: var(--color-text);
       line-height: 1.6; -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
+      min-height: 100vh; display: flex; flex-direction: column;
     }
-    a { color: var(--color-accent); text-decoration: none; }
-    .bg-grid {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
-      pointer-events: none;
-      background-image:
-        linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px);
-      background-size: 60px 60px;
-    }
+    a { color: var(--color-accent); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: var(--color-accent-red); }
+
     .container { max-width: var(--max-width, 1400px); margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
 
-    /* ── Nav ── */
-    nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 0; border-bottom: 1px solid var(--color-border);
+    /* ── Sticky Header ── */
+    .site-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      max-width: var(--max-width, 1400px);
+      margin: 0 auto;
+      padding: 0 24px;
     }
     .logo {
-      font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px;
-      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--color-accent);
+      letter-spacing: -0.02em;
+      text-decoration: none;
     }
-    .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
-    .nav-links a { color: var(--color-text-muted); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--color-text); }
+    .logo:hover { color: var(--color-accent); }
+    .nav-links { display: flex; align-items: center; gap: 24px; list-style: none; }
+    .nav-links a {
+      color: #475569;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--color-accent); }
+
+    /* ── Banner Hero ── */
+    .banner {
+      background: linear-gradient(135deg, #00739c 0%, #38444d 100%);
+      color: #ffffff;
+      padding: 64px 0 56px;
+    }
+    .banner-content {
+      max-width: var(--max-width, 1400px);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .banner-content h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+    .banner-content p {
+      font-size: 1.05rem;
+      color: #cbd5e1;
+      max-width: 600px;
+    }
+    .banner-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
 
     /* ── Buttons ── */
     .btn {
       display: inline-flex; align-items: center; gap: 10px; padding: 12px 28px;
-      border-radius: 100px; font-family: var(--font); font-size: 0.9rem; font-weight: 600;
+      border-radius: 8px; font-family: var(--font); font-size: 0.9rem; font-weight: 600;
       border: none; cursor: pointer; transition: all 0.3s;
     }
     .btn-primary {
-      background: linear-gradient(135deg, var(--color-accent), #5a4bd4); color: #fff;
-      box-shadow: 0 4px 25px var(--color-accent-glow);
+      background: #00739c; color: #fff;
     }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px var(--color-accent-glow); }
+    .btn-primary:hover { background: #38444d; }
     .btn-sm { padding: 8px 20px; font-size: 0.82rem; }
     .btn-outline {
       background: transparent; color: var(--color-accent);
       border: 1px solid var(--color-accent); padding: 6px 16px; font-size: 0.78rem;
     }
-    .btn-outline:hover { background: rgba(124,58,237,0.06); }
-
-    /* ── Page header ── */
-    .page-header { padding: 32px 0 20px; }
-    .page-header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -1px; }
-    .page-header h1 .gradient-text {
-      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .page-header p { color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 12px; }
-    .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-outline:hover { background: rgba(0,115,156,0.06); }
 
     /* ── Kanban board ── */
     .kanban-board {
@@ -149,7 +185,7 @@
       gap: 8px;
     }
     .kanban-cards.drag-over {
-      background: rgba(124, 58, 237, 0.04);
+      background: rgba(0, 115, 156, 0.04);
       border-radius: 8px;
     }
 
@@ -164,7 +200,7 @@
       user-select: none;
     }
     .kanban-card:hover {
-      border-color: rgba(124,58,237,0.25);
+      border-color: rgba(0, 115, 156, 0.2);
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .kanban-card:active { cursor: grabbing; }
@@ -211,7 +247,7 @@
       font-size: 0.62rem;
       padding: 1px 5px;
       border-radius: 3px;
-      background: rgba(108,92,231,0.06);
+      background: rgba(0, 115, 156, 0.06);
       color: var(--color-text-muted);
       border: 1px solid var(--color-border);
     }
@@ -250,57 +286,74 @@
     }
     .kanban-empty a { color: var(--color-accent); font-weight: 600; }
 
-    footer { border-top: 1px solid var(--color-border); padding: 32px 0; margin-top: 48px; }
-    footer p { color: var(--color-text-muted); font-size: 0.85rem; text-align: center; }
+    /* ── Footer ── */
+    .site-footer {
+      background: #ffffff;
+      border-top: 1px solid var(--color-border);
+      padding: 20px 0;
+      margin-top: auto;
+    }
+    .footer-inner {
+      max-width: var(--max-width, 1400px);
+      margin: 0 auto;
+      padding: 0 24px;
+      text-align: left;
+    }
+    .site-footer p {
+      font-size: 0.825rem;
+      color: #94a3b8;
+    }
+
+    .main-content {
+      flex: 1;
+    }
 
     @media (max-width: 768px) {
-      .nav-links li:not(.nav-cta-li) { display: none; }
       .kanban-column { flex: 0 0 260px; min-width: 220px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="bg-grid"></div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">MOpsWork</a>
+      <nav class="nav-links">
+        <a href="/MOPSWork/jobs.html">Job Scanner</a>
+        <a href="/MOPSWork/applications.html" style="color: var(--color-accent); font-weight: 600;">Applications</a>
+        <a href="/MOPSWork/skills-in-demand.html">Skills</a>
+        <a href="/MOPSWork/samples.html">Samples</a>
+        <a href="/MOPSWork/aboutme.html">About Me</a>
+      </nav>
+    </div>
+  </header>
 
-  <div class="container">
-    <nav>
-      <a href="/" class="logo" style="text-decoration: none;">MOpsWork</a>
-      <ul class="nav-links">
-        <li><a href="/jobs.html">Job Scanner</a></li>
-        <li><a href="/applications.html" style="color: var(--color-accent);">Applications</a></li>
-        <li><a href="/scoring.html">Scoring</a></li>
-        <li><a href="/skills-in-demand.html">Skills</a></li>
-        <li><a href="/samples.html">Samples</a></li>
-        <li><a href="/aboutme.html">About Me</a></li>
-      </ul>
-    </nav>
-  </div>
-
-  <div class="container">
-    <div class="page-header">
-      <h1><span class="gradient-text">Applications</span></h1>
+  <section class="banner">
+    <div class="banner-content">
+      <h1>Applications</h1>
       <p>Track every application. Drag any card between columns to update its status.</p>
-      <div class="header-actions">
+      <div class="banner-actions">
         <button class="btn btn-sm btn-outline" onclick="window.__exportCSV()">
           Download All as CSV
         </button>
-        <a href="/jobs.html" class="btn btn-sm btn-primary" style="text-decoration:none;">
+        <a href="/MOPSWork/jobs.html" class="btn btn-sm btn-primary" style="text-decoration:none;">
           Find More Jobs
         </a>
       </div>
     </div>
+  </section>
 
+  <div class="container main-content">
     <div id="boardContainer">
       <div style="text-align:center; padding:48px; color:var(--color-text-muted);">Loading applications...</div>
     </div>
   </div>
 
-  <div class="container">
-    <footer>
+  <footer class="site-footer">
+    <div class="footer-inner">
       <p>&copy; 2026 MOpsWork. All rights reserved.</p>
-    </footer>
-  </div>
+    </div>
+  </footer>
 
   <script>
     var API_BASE = window.API_BASE || "http://localhost:8003";
@@ -376,12 +429,11 @@
           <div style="text-align:center; padding:48px; color:var(--color-text-muted);">
             No applications tracked yet.
             <br><br>
-            <a href="/jobs.html">Go to the Job Scanner</a> and set a status on jobs you're interested in.
+            <a href="/MOPSWork/jobs.html">Go to the Job Scanner</a> and set a status on jobs you're interested in.
           </div>`;
         return;
       }
 
-      // Group jobs by status
       const groups = {};
       COLUMNS.forEach(c => { groups[c.key] = []; });
       jobs.forEach(j => {
@@ -424,15 +476,12 @@
       attachDragHandlers();
     }
 
-    // ── Drag & Drop ──
     function attachDragHandlers() {
-      // Card drag start
       document.querySelectorAll(".kanban-card[draggable]").forEach(card => {
         card.addEventListener("dragstart", onDragStart);
         card.addEventListener("dragend", onDragEnd);
       });
 
-      // Column drop zones
       document.querySelectorAll(".kanban-cards").forEach(zone => {
         zone.addEventListener("dragover", onDragOver);
         zone.addEventListener("dragleave", onDragLeave);
@@ -470,44 +519,88 @@
       const newStatus = this.dataset.column;
       if (!jobId || !newStatus) return;
 
-      // If dropped in same column, do nothing
       const sourceCard = document.querySelector(`.kanban-card[data-job-id="${jobId}"]`);
       if (!sourceCard) return;
 
       const oldStatus = sourceCard.dataset.status;
       if (oldStatus === newStatus) return;
 
-      // Call API to update
       updateJobStatus(jobId, newStatus, sourceCard);
     }
 
     async function updateJobStatus(jobId, newStatus, sourceCard) {
       try {
+        const cardJob = {
+          job_id: jobId,
+          title: sourceCard ? (sourceCard.querySelector(".kc-title") || {}).innerText : "",
+          company: sourceCard ? (sourceCard.querySelector(".kc-company") || {}).innerText : "",
+          url: sourceCard ? ((sourceCard.querySelector(".kc-title a") || {}).href || "") : "",
+        };
+        if (window.MopsTracker) window.MopsTracker.remember(cardJob, jobId, newStatus);
         const formData = new FormData();
         formData.append("status", newStatus);
+        formData.append("title", cardJob.title || "");
+        formData.append("company", cardJob.company || "");
+        formData.append("url", cardJob.url || "");
         const resp = await fetch(`${API_BASE}/api/applications/${jobId}`, {
           method: "POST",
           body: formData,
         });
         if (!resp.ok) throw new Error("API error");
-        // Reload the whole board to reflect the change
         loadApplications();
       } catch (err) {
         console.error("Failed to update status:", err);
-        // Reload anyway to reset UI
         loadApplications();
       }
+    }
+
+    function recsToJobs(recs) {
+      return (recs || []).filter(rec => rec && rec.status && rec.title).map(rec => ({
+        job_id: rec.id,
+        title: rec.title,
+        company: rec.company || "",
+        url: rec.url || "",
+        status: rec.status,
+        location: rec.location || "",
+        match_score: rec.match_score || 0,
+        date_applied: rec.date || "",
+        key_skills: [],
+        matched_skills: [],
+        skills_gap: [],
+      }));
     }
 
     async function loadApplications() {
       const container = document.getElementById("boardContainer");
       try {
         const resp = await fetch(`${API_BASE}/api/applications`);
-        if (!resp.ok) throw new Error("Failed to load");
-        allJobs = await resp.json();
+        const apiJobs = resp.ok ? await resp.json() : [];
+        const localJobs = window.MopsTracker ? recsToJobs(window.MopsTracker.allRecs()) : [];
+        const byId = {};
+        apiJobs.forEach(j => { if (j && j.job_id) byId[j.job_id] = j; });
+        localJobs.forEach(j => {
+          if (!j.job_id) {
+            byId["local-" + (j.title || "") + "|" + (j.company || "")] = j;
+            return;
+          }
+          if (byId[j.job_id]) {
+            byId[j.job_id].status = j.status || byId[j.job_id].status;
+            if (!byId[j.job_id].title) byId[j.job_id].title = j.title;
+            if (!byId[j.job_id].company) byId[j.job_id].company = j.company;
+          } else {
+            byId[j.job_id] = j;
+          }
+        });
+        allJobs = Object.values(byId);
         buildBoard(allJobs);
       } catch (err) {
         console.error("Failed to load applications:", err);
+        const localJobs = window.MopsTracker ? recsToJobs(window.MopsTracker.allRecs()) : [];
+        if (localJobs.length) {
+          allJobs = localJobs;
+          buildBoard(allJobs);
+          return;
+        }
         container.innerHTML = `
           <div style="text-align:center; padding:48px; color:var(--color-text-muted);">
             Could not load applications. Make sure the backend is running on port 8003.

@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .env
 uploads/
+cv_profile.json
 *.egg-info/
 dist/
 build/

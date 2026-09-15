@@ -159,8 +159,13 @@
       fd.set("company", job.company || "");
       fd.set("url", job.url || "");
     }
-    if (newStatus) rememberDismissed(job, jobId, newStatus);
-    else forgetDismissed(job, jobId);
+    if (newStatus) {
+      if (window.MopsTracker) window.MopsTracker.remember(job, jobId, newStatus);
+      else rememberDismissed(job, jobId, newStatus);
+    } else {
+      if (window.MopsTracker) window.MopsTracker.forget(job, jobId);
+      else forgetDismissed(job, jobId);
+    }
     if (newStatus) {
       allJobs = allJobs.filter(function(j) { return j.job_id !== jobId; });
       renderTable();
@@ -249,26 +254,27 @@
   }
 
   async function replayDismissedToServer() {
-    var d = loadDismissed();
     var jobs = [];
     try {
       var params = new URLSearchParams({ limit: "200", exclude_na: "false", posted_since: "1w" });
       var r = await fetch(API_BASE + "/api/jobs?" + params);
       if (r.ok) jobs = await r.json();
     } catch (e) {}
+    var recs = window.MopsTracker ? window.MopsTracker.allRecs() : ((loadDismissed().recs) || []);
     var recById = {};
-    (d.recs || []).forEach(function(rec) { if (rec && rec.id) recById[rec.id] = rec; });
+    recs.forEach(function(rec) { if (rec && rec.id) recById[rec.id] = rec; });
     var posted = {};
     for (var i = 0; i < jobs.length; i++) {
       var job = jobs[i];
-      if (!job || !job.job_id || job.status) continue;
-      if (!isDismissed(job)) continue;
-      var rec = recById[job.job_id] || {};
+      if (!job || !job.job_id) continue;
+      if (window.MopsTracker) window.MopsTracker.applyStatus(job);
+      if (!isDismissed(job) && !job.status) continue;
+      var rec = recById[job.job_id] || (window.MopsTracker && window.MopsTracker.recFor(job)) || {};
       var fd = new URLSearchParams();
-      fd.set("status", rec.status || "not_applicable");
-      fd.set("title", job.title || "");
-      fd.set("company", job.company || "");
-      fd.set("url", job.url || "");
+      fd.set("status", rec.status || job.status || "not_applicable");
+      fd.set("title", job.title || rec.title || "");
+      fd.set("company", job.company || rec.company || "");
+      fd.set("url", job.url || rec.url || "");
       posted[job.job_id] = true;
       try {
         await fetch(API_BASE + "/api/applications/" + encodeURIComponent(job.job_id), {
@@ -278,8 +284,8 @@
         });
       } catch (e) {}
     }
-    for (var j = 0; j < (d.recs || []).length; j++) {
-      var rec2 = d.recs[j];
+    for (var j = 0; j < recs.length; j++) {
+      var rec2 = recs[j];
       if (!rec2 || !rec2.id || !rec2.status || !rec2.title || posted[rec2.id]) continue;
       var fd2 = new URLSearchParams();
       fd2.set("status", rec2.status);
@@ -297,6 +303,7 @@
   }
 
   function isDismissed(job) {
+    if (window.MopsTracker) return window.MopsTracker.isDismissed(job);
     if (!job) return false;
     if (job.status) return true;
     var d = loadDismissed();
@@ -327,7 +334,11 @@
 
       const r = await fetch(API_BASE + "/api/jobs?" + p);
       if (!r.ok) throw new Error("HTTP " + r.status);
-      allJobs = (await r.json()).filter(function(job) { return !isDismissed(job); });
+      const rows = await r.json();
+      allJobs = rows.map(function(job) {
+        if (window.MopsTracker) window.MopsTracker.applyStatus(job);
+        return job;
+      }).filter(function(job) { return !isDismissed(job); });
       renderTable();
     } catch (err) {
       console.error("Fetch failed:", err);
@@ -361,13 +372,114 @@
     } catch {}
   }
 
+  var CV_DB = "mopswork_cv";
+  var CV_META_KEY = "mopswork_cv_name";
+
+  function openCvDb() {
+    return new Promise(function(resolve, reject) {
+      var req = indexedDB.open(CV_DB, 1);
+      req.onupgradeneeded = function() {
+        if (!req.result.objectStoreNames.contains("files")) req.result.createObjectStore("files");
+      };
+      req.onsuccess = function() { resolve(req.result); };
+      req.onerror = function() { reject(req.error); };
+    });
+  }
+
+  async function saveCvLocal(file, name) {
+    try { localStorage.setItem(CV_META_KEY, name || file.name); } catch (e) {}
+    try {
+      var db = await openCvDb();
+      await new Promise(function(resolve, reject) {
+        var tx = db.transaction("files", "readwrite");
+        tx.objectStore("files").put({ file: file, name: name || file.name }, "latest");
+        tx.oncomplete = resolve;
+        tx.onerror = function() { reject(tx.error); };
+      });
+    } catch (e) {}
+  }
+
+  async function loadCvLocal() {
+    try {
+      var db = await openCvDb();
+      return await new Promise(function(resolve, reject) {
+        var tx = db.transaction("files", "readonly");
+        var q = tx.objectStore("files").get("latest");
+        q.onsuccess = function() { resolve(q.result || null); };
+        q.onerror = function() { reject(q.error); };
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function clearCvLocal() {
+    try { localStorage.removeItem(CV_META_KEY); } catch (e) {}
+    try {
+      var db = await openCvDb();
+      await new Promise(function(resolve, reject) {
+        var tx = db.transaction("files", "readwrite");
+        tx.objectStore("files").delete("latest");
+        tx.oncomplete = resolve;
+        tx.onerror = function() { reject(tx.error); };
+      });
+    } catch (e) {}
+  }
+
+  async function postCv(file, name) {
+    var lastErr = null;
+    for (var attempt = 1; attempt <= 6; attempt++) {
+      try {
+        var fd = new FormData();
+        fd.append("file", file);
+        fd.append("name", name || file.name);
+        var r = await fetch(API_BASE + "/api/profile/upload", { method: "POST", body: fd });
+        if (r.ok) return await r.json();
+        lastErr = new Error("Upload failed: " + r.status);
+      } catch (e) {
+        lastErr = e;
+      }
+      await new Promise(function(res) { setTimeout(res, 4000 * attempt); });
+    }
+    throw lastErr || new Error("Upload failed");
+  }
+
   async function fetchProfile() {
     try {
       const r = await fetch(API_BASE + "/api/profile");
       if (!r.ok) return;
       profile = await r.json();
+      var wanted = "";
+      try { wanted = localStorage.getItem(CV_META_KEY) || ""; } catch (e) {}
+      if (wanted && profile && profile.name && profile.name !== wanted) {
+        var local = await loadCvLocal();
+        if (local && local.file) {
+          profile = await postCv(local.file, local.name || wanted);
+        }
+      } else if (wanted && (!profile || !profile.has_cv)) {
+        var local2 = await loadCvLocal();
+        if (local2 && local2.file) {
+          profile = await postCv(local2.file, local2.name || wanted);
+        }
+      }
       updateProfileUI();
     } catch {}
+  }
+
+  async function uploadCV(file, name) {
+    var label = name || file.name;
+    await saveCvLocal(file, label);
+    try {
+      profile = await postCv(file, label);
+      updateProfileUI();
+      if (cvCompareToggle) cvCompareToggle.checked = true;
+      fetchJobs();
+    } catch (e) { console.error(e); alert("CV upload failed. The September file is saved in this browser and will retry when the API is awake."); }
+  }
+
+  async function deleteProfile() {
+    await clearCvLocal();
+    try { await fetch(API_BASE + "/api/profile", { method: "DELETE" }); profile = null; updateProfileUI(); fetchJobs(); } catch {}
   }
 
   async function triggerScrape() {
@@ -376,24 +488,6 @@
     try { await fetch(API_BASE + "/api/scrape", { method: "POST" }); await Promise.all([fetchJobs(), fetchStats()]); }
     catch (e) { console.error(e); }
     finally { if (btn) { btn.disabled = false; btn.textContent = "Refresh Jobs"; } }
-  }
-
-  async function uploadCV(file, name) {
-    var fd = new FormData();
-    fd.append("file", file);
-    fd.append("name", name || file.name);
-    try {
-      var r = await fetch(API_BASE + "/api/profile/upload", { method: "POST", body: fd });
-      if (!r.ok) throw new Error("Upload failed: " + r.status);
-      profile = await r.json();
-      updateProfileUI();
-      if (cvCompareToggle) cvCompareToggle.checked = true;
-      fetchJobs();
-    } catch (e) { console.error(e); alert("CV upload failed. Use PDF or DOCX."); }
-  }
-
-  async function deleteProfile() {
-    try { await fetch(API_BASE + "/api/profile", { method: "DELETE" }); profile = null; updateProfileUI(); fetchJobs(); } catch {}
   }
 
   function updateProfileUI() {
